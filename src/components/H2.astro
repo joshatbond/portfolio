@@ -1,0 +1,10 @@
+---
+type Props = { text: string; light?: boolean }
+const { text, light } = Astro.props
+---
+
+<h2 class={`text-2xl mb-4 pb-1 border-b-2 
+  ${light ? 'border-slate-600' : 'border-neutral-50'}
+`}>
+  {text}
+</h2>

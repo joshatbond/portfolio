@@ -1,0 +1,18 @@
+---
+import { type Skill } from '../data/resume'
+type Props = Skill
+const { name, time, type } = Astro.props
+---
+
+<div class={`rounded-lg
+  ${type === 'g' 
+    ? 'bg-neutral-300' 
+    : type === 'f' 
+    ? 'bg-indigo-500' 
+    : type==='b'
+    ? 'bg-sky-700' 
+    : 'bg-gradient-to-r from-sky-700 to-indigo-500'
+  } ${type === 'g' ? 'text-neutral-900' : 'text-neutral-100'} text-xs max-w-fit px-2 py-2`}>
+  {name} 
+  <span class={`rounded-full ${type==='g'?'bg-black/30 text-neutral-100' : 'bg-white/30 text-neutral-900'} ml-2 px-2 py-1 font-thin w-6 h-6`}>{time}y</span>
+</div>

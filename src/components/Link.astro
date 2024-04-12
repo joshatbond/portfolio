@@ -1,0 +1,22 @@
+---
+import { type Link } from '../data/resume'
+import GH from './icons/Github.astro'
+type Props = Link
+const { to, ref } = Astro.props
+---
+
+<div class='flex flex-wrap items-center gap-4'>
+  <div
+    class='flex bg-neutral-300 text-black items-center max-w-min rounded overflow-hidden relative'
+  >
+    <div class='flex items-center px-3 gap-2'>
+      <GH width={16} height={16} />
+      <a href={ref} target='_blank' class='print:break-all print:ml-4'>{ref}</a>
+    </div>
+  </div>
+</div>
+
+<!-- <a href={ref} class='text-neutral-300 flex'>
+  <span class='font-medium text-neutral-50 w-20'>{to}</span>
+  <span class="print:break-all print:ml-4">{ref}</span>
+</a> -->

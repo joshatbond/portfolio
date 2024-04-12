@@ -1,0 +1,13 @@
+---
+import H2 from './H2.astro'
+
+type Props = { title: string; light?: boolean }
+const { title, light } = Astro.props
+---
+
+<div class='mb-2'>
+  <H2 text={title} light={light} />
+  <div class='ml-6 print:ml-0 flex flex-col gap-2'>
+    <slot />
+  </div>
+</div>

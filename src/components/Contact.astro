@@ -1,0 +1,27 @@
+---
+import { type Contact } from '../data/resume'
+import Mail from './icons/Mail.astro'
+import Phone from './icons/Phone.astro'
+import Pin from './icons/Pin.astro'
+type Props = Contact
+const { icon, text } = Astro.props
+---
+
+<div>
+  {
+    icon === 'mail' ? (
+      <a
+        href={`mailto:${text}?subject=Resume Inquiry`}
+        class='flex gap-4 items-center'
+      >
+        <Mail />
+        <span>{text}</span>
+      </a>
+    ) : (
+      <div class='flex gap-4 items-center'>
+        {icon === 'phone' ? <Phone /> : <Pin />}
+        <span>{text}</span>
+      </div>
+    )
+  }
+</div>
