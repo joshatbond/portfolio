@@ -7,11 +7,15 @@ const { to, ref } = Astro.props
 
 <div class='flex flex-wrap items-center gap-4'>
   <div
-    class='flex bg-neutral-300 text-black items-center max-w-min rounded overflow-hidden relative'
+    class='flex bg-neutral-300 text-black items-center max-w-min rounded overflow-hidden relative print:bg-transparent'
   >
     <div class='flex items-center px-3 gap-2'>
-      <GH width={16} height={16} />
-      <a href={ref} target='_blank' class='print:break-all print:ml-4'>{ref}</a>
+      <span class='print:hidden'><GH width={16} height={16} /></span>
+      <a
+        href={ref}
+        target='_blank'
+        class='print:text-sm print:text-black print:no-underline'>{ref}</a
+      >
     </div>
   </div>
 </div>

@@ -8,7 +8,7 @@ type Props = { logo: string }
 const { logo } = Astro.props
 ---
 
-<header class='sticky top-0 inset-x-0'>
+<header class='sticky top-0 inset-x-0 print:hidden'>
   <nav>
     <h2>
       <a href='/'>{logo}</a>

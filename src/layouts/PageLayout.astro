@@ -23,7 +23,7 @@ const logo = title ?? SITE_TITLE
 
     <slot name='head' />
   </head>
-  <body>
+  <body class='print:min-h-screen'>
     <Header logo={logo} />
 
     <slot />
