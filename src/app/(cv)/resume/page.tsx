@@ -85,12 +85,12 @@ function Contact({ icon, text }: Contact) {
   return (
     <div>
       {icon === 'mail' ? (
-        <div className='flex items-center gap-4'>
-          <Link href={`mailto:${text}?subject=Resume Inquiry`}>
+        <Link href={`mailto:${text}?subject=Resume Inquiry`}>
+          <div className='flex items-center gap-4'>
             <MailIcon />
             <span>{text}</span>
-          </Link>
-        </div>
+          </div>
+        </Link>
       ) : (
         <div className='flex items-center gap-4'>
           {icon === 'phone' ? <PhoneIcon /> : <PinIcon />}
