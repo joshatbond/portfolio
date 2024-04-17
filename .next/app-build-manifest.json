@@ -1,0 +1,32 @@
+{
+  "pages": {
+    "/(cv)/resume/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(cv)/resume/page.js"
+    ],
+    "/(cv)/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/css-src_styles_globals_css-node_modules_pnpm_next_14_2_1_react-dom_18_2_0_react_18_2_0_node_m-47dcb3.css",
+      "static/chunks/app/(cv)/layout.js"
+    ],
+    "/(home)/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(home)/page.js"
+    ],
+    "/(home)/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/css-node_modules_pnpm_next_14_2_1_react-dom_18_2_0_react_18_2_0_node_modules_next_font_google-fc38ed.css",
+      "static/css/css-src_styles_globals_css-node_modules_pnpm_next_14_2_1_react-dom_18_2_0_react_18_2_0_node_m-47dcb3.css",
+      "static/chunks/app/(home)/layout.js"
+    ],
+    "/(home)/projects/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(home)/projects/page.js"
+    ]
+  }
+}

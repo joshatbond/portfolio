@@ -54,7 +54,7 @@ export const resume: Resume = {
       ],
     },
   ],
-  links: [{ ref: 'https://github.com/joshatbond', to: 'Professional' }],
+  links: [{ url: 'https://github.com/joshatbond', to: 'Professional' }],
   objective:
     'Full-Stack Web developer interested in functional programming and type-safety with 4 years experience seeking a position that allows for continued growth and challenges to continue to improve my skillset.',
   projects: [
@@ -62,52 +62,52 @@ export const resume: Resume = {
       title: 'Grepl',
       url: 'grepl.cursedtale.com',
       repo: 'https://github.com/joshatbond/grepl',
-      imageUrl: '/images/grepl.png',
+      id: 'grepl',
     },
     {
       title: 'Bond Website',
       url: 'https://www.wearebond.com/',
-      imageUrl: '/images/bond.jpg',
+      id: 'bond',
     },
     {
       title: 'Barbie Selfie Generator',
       url: 'https://www.barbieselfie.ai/',
-      imageUrl: '/images/barbie.jpg',
+      id: 'barbie',
     },
     {
       title: 'Oppenheimer',
       url: 'https://www.oppenheimermovie.com/',
-      imageUrl: '/images/oppenheimer.jpg',
+      id: 'oppenheimer',
     },
     {
       title: 'Expend4bles Poster Generator',
       url: 'https://join.expendables.movie/',
-      imageUrl: '/images/expend4bles.jpg',
+      id: 'expend4bles',
     },
     {
       title: 'Wild Rift Anniversary Site',
       url: 'https://anniversary.wildrift.leagueoflegends.com/en-us/',
-      imageUrl: '/images/wr.jpg',
+      id: 'wr',
     },
     {
       title: 'TFT - Set 10: Remix Rumble',
       url: 'https://remix-rumble.teamfighttactics.leagueoflegends.com/en-us/remix/',
-      imageUrl: '/images/tft-s10.webp',
+      id: 'tft-s10',
     },
     {
       title: 'Skydance Media Website',
       url: 'https://skydance.com/',
-      imageUrl: '/images/skydance.png',
+      id: 'skydance',
     },
     {
       title: 'Accelerise Media Website',
       url: 'https://accelarisemedia.com/',
-      imageUrl: '/images/accelerise.jpg',
+      id: 'accelerise',
     },
     {
       title: 'The Watchers',
       url: 'https://www.areyouwatching.us/',
-      imageUrl: '/images/watchers.jpg',
+      id: 'watchers',
     },
   ],
   skills: [
@@ -155,10 +155,10 @@ export type Experience = {
   title: string
   to: string
 }
-export type Link = { ref: string; to: string }
+export type Link = { url: string; to: string }
 export type Skill = { name: string; time: number; type: 'b' | 'f' | 'g' | 's' }
 export type Project = {
-  imageUrl?: string
+  id?: string
   repo?: string
   title: string
   url: string
