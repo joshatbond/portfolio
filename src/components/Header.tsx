@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Logo from '~/components/Logo'
 
 import Github from '~/components/icons/Github'
 
@@ -6,9 +7,15 @@ export default function Header({ dark }: { dark?: boolean }) {
   return (
     <header className='bg-white/40 p-4 text-black'>
       <nav className='flex items-center justify-between'>
-        <Link href='/'>
-          <span className='text-2xl font-semibold'>A Cursed Tale</span>
-        </Link>
+        <div className='flex items-center gap-2'>
+          <div className='h-8 w-8'>
+            <Logo />
+          </div>
+
+          <Link href='/'>
+            <span className='text-2xl font-semibold'>A Cursed Tale</span>
+          </Link>
+        </div>
         <div className='flex items-center gap-4'>
           <NavItem text='Projects' url='/projects' dark={dark} />
 
