@@ -101,17 +101,28 @@ function Contact({ icon, text }: Contact) {
   )
 }
 
-function LinkItem({ url }: TLink) {
+function LinkItem({ url, to }: TLink) {
+  const isGithub = to == 'GH'
+
   return (
-    <div className='flex flex-wrap items-center gap-4'>
-      <div className='relative flex max-w-min overflow-hidden text-clip rounded bg-neutral-300 text-black print:bg-transparent'>
-        <div className='flex items-center gap-2 px-3'>
-          <span className='print:hidden'>
-            <GithubIcon size={16} />
+    <div className='print:-ml-4 grid grid-flow-col gap-4'>
+      <div className='relative flex overflow-hidden text-clip rounded bg-neutral-300 text-black print:bg-transparent'>
+        <div className='flex flex-grow items-center justify-between gap-2 px-3'>
+          <span>
+            {isGithub ? (
+              <span>
+                <span className='print:hidden'>
+                  <GithubIcon size={16} />
+                </span>
+                <span className='hidden print:inline font-bold'>{to}</span>
+              </span>
+            ) : (
+              <span className='font-bold'>{to}</span>
+            )}
           </span>
 
           <Link href={url} target='_blank'>
-            <span className='print:text-sm print:text-black print:no-underline'>
+            <span className='print:text-sm print:text-black print:no-underline hover:text-blue-600'>
               {url}
             </span>
           </Link>

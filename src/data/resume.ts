@@ -54,7 +54,10 @@ export const resume: Resume = {
       ],
     },
   ],
-  links: [{ url: 'https://github.com/joshatbond', to: 'Professional' }],
+  links: [
+    { url: 'https://github.com/joshatbond', to: 'GH' },
+    { url: 'https://portfolio.cursedtale.com', to: 'CV' },
+  ],
   objective:
     'Full-Stack Web developer interested in functional programming and type-safety with 4 years experience seeking a position that allows for continued growth and challenges to continue to improve my skillset.',
   projects: [
