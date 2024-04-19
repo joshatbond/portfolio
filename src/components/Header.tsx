@@ -5,7 +5,7 @@ import Github from '~/components/icons/Github'
 
 export default function Header({ dark }: { dark?: boolean }) {
   return (
-    <header className='bg-white/40 p-4 text-black'>
+    <header className='bg-white/40 p-4 text-black print:hidden'>
       <nav className='flex items-center justify-between'>
         <div className='flex items-center gap-2'>
           <div className='h-8 w-8'>
