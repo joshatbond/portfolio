@@ -12,6 +12,7 @@ import {
   type Link as TLink,
   resume,
 } from '~/data/resume'
+import { env } from '~/env'
 
 export default function ResumePage() {
   return (
@@ -82,23 +83,33 @@ function Section({
 }
 
 function Contact({ icon, text }: Contact) {
-  return (
-    <div>
-      {icon === 'mail' ? (
+  switch (icon) {
+    case 'mail':
+      return (
         <Link href={`mailto:${text}?subject=Resume Inquiry`}>
           <div className='flex items-center gap-4'>
             <MailIcon />
             <span>{text}</span>
           </div>
         </Link>
-      ) : (
+      )
+    case 'loc':
+      return (
         <div className='flex items-center gap-4'>
-          {icon === 'phone' ? <PhoneIcon /> : <PinIcon />}
+          <PinIcon />
           <span>{text}</span>
         </div>
-      )}
-    </div>
-  )
+      )
+    case 'phone':
+      return env.NODE_ENV === 'development' ? (
+        <div className='flex items-center gap-4'>
+          <PhoneIcon />
+          <span>{text}</span>
+        </div>
+      ) : null
+    default:
+      return null
+  }
 }
 
 function LinkItem({ url, to }: TLink) {
