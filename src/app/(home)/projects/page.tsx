@@ -22,7 +22,7 @@ export default function ProjectsPage() {
         Behold! Some cool projects I&apos;ve worked on!
       </h2>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {resume.projects.map(({ id, repo, title, url }) => (
           <div
             className="group min-w-[250px] rounded bg-white/20 p-2"
