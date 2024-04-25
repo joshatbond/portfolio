@@ -1,4 +1,5 @@
 import Img from './_components/Img'
+import dev from '~/assets/web_dev.png'
 
 export default function HomePage() {
   return (
@@ -17,7 +18,9 @@ export default function HomePage() {
         </p>
       </div>
 
-      <Img />
+      <div className='absolute -left-[8.5rem] bottom-[0.5rem] w-[600px]'>
+        <Img src={dev} alt='Web Development graphic' width={600} height={500} />
+      </div>
     </article>
   )
 }

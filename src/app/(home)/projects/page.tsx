@@ -14,6 +14,7 @@ import Watchers from '~/assets/watchers.jpg'
 import Wr from '~/assets/wr.jpg'
 import Share from '~/components/icons/Share'
 import { resume } from '~/data/resume'
+import Img from '../_components/Img'
 
 export default function ProjectsPage() {
   return (
@@ -84,14 +85,14 @@ function ProjectImage({ id }: { id: string }) {
   return (
     <div className='relative overflow-hidden'>
       <div className='absolute inset-0 bg-neutral-600'></div>
-      <Image
-        className={`object-fit aspect-video w-full rounded transition-opacity  ${loaded ? 'opacity-100' : 'opacity-0'}`}
+
+      <Img
         src={imageUrl}
         alt={`${id} project image`}
         width={401}
         height={226}
-        onLoadingComplete={() => loadedAssign(true)}
       />
+
       <div className='shine absolute inset-0' />
     </div>
   )
