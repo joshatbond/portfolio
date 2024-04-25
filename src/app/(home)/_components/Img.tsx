@@ -14,7 +14,6 @@ export default function Img() {
         alt='Web Development graphic'
         width={600}
         height={500}
-        onLoad={() => doneAssign(true)}
       />
     </div>
   )

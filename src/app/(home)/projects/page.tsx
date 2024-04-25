@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { useState } from 'react'
 
 import Accelerise from '~/assets/accelerise.jpg'
 import Barbie from '~/assets/barbie.jpg'
@@ -16,35 +17,40 @@ import { resume } from '~/data/resume'
 
 export default function ProjectsPage() {
   return (
-    <article className="space-y-4 overflow-y-auto p-4">
-      <h2 className="text-center text-2xl font-semibold text-neutral-100">
+    <article className='space-y-4 overflow-y-auto p-4'>
+      <h2 className='text-center text-2xl font-semibold text-neutral-100'>
         Behold! Some cool projects I&apos;ve worked on!
       </h2>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className='grid grid-cols-2 gap-6'>
         {resume.projects.map(({ id, repo, title, url }) => (
           <div
-            className="group min-w-[250px] rounded bg-white/20 p-2"
+            className='group min-w-[250px] rounded bg-white/20 p-2'
             key={url}
           >
             {id ? (
               <ProjectImage id={id} />
             ) : (
-              <div className="aspect-video w-full rounded bg-slate-400" />
+              <div className='aspect-video w-full rounded bg-slate-400' />
             )}
 
-            <div className="flex justify-between pt-1">
-              <div className="flex gap-1">
-                <span>{title}</span>
-                <a href={url}>
-                  <Share cn="w-3 h-3 mt-1.5 text-blue-200" />
-                </a>
-              </div>
-              {repo && (
-                <Link href={repo} target="_blank">
-                  Repository
-                </Link>
-              )}
+            <div className='flex justify-between pt-1'>
+              <Link href={url} target='_blank'>
+                <div className='flex gap-1 hover:text-blue-200'>
+                  <span>{title}</span>
+                  <a href={url}>
+                    <Share cn='w-3 h-3 mt-1.5 text-slate-200' />
+                  </a>
+                </div>
+              </Link>
+
+              <span className='hover:text-blue-200'>
+                {repo && (
+                  <Link href={repo} target='_blank'>
+                    Repository
+                  </Link>
+                )}
+              </span>
             </div>
           </div>
         ))}
@@ -54,6 +60,7 @@ export default function ProjectsPage() {
 }
 
 function ProjectImage({ id }: { id: string }) {
+  const [loaded, loadedAssign] = useState(false)
   const imageUrl =
     id === 'accelerise'
       ? Accelerise
@@ -76,13 +83,17 @@ function ProjectImage({ id }: { id: string }) {
                       : Wr
 
   return (
-    <div className="relative overflow-hidden">
+    <div className='relative overflow-hidden'>
+      <div className='absolute inset-0 bg-neutral-600'></div>
       <Image
-        className="object-fit aspect-video w-full rounded"
+        className={`object-fit aspect-video w-full rounded transition-opacity  ${loaded ? 'opacity-100' : 'opacity-0'}`}
         src={imageUrl}
         alt={`${id} project image`}
+        width={401}
+        height={226}
+        onLoadingComplete={() => loadedAssign(true)}
       />
-      <div className="shine absolute inset-0" />
+      <div className='shine absolute inset-0' />
     </div>
   )
 }
