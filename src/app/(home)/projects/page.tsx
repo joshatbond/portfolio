@@ -1,6 +1,4 @@
-import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
 
 import Accelerise from '~/assets/accelerise.jpg'
 import Barbie from '~/assets/barbie.jpg'
@@ -60,7 +58,6 @@ export default function ProjectsPage() {
 }
 
 function ProjectImage({ id }: { id: string }) {
-  const [loaded, loadedAssign] = useState(false)
   const imageUrl =
     id === 'accelerise'
       ? Accelerise
