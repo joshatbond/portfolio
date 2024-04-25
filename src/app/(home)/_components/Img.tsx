@@ -9,12 +9,13 @@ export default function Img() {
     <div className='absolute -left-[8.5rem] bottom-[0.5rem] w-[600px]'>
       <Image
         src={dev}
-        className={done ? 'opacity-100' : 'opacity-0'}
+        // className={done ? 'opacity-100' : 'opacity-0'}
         onLoadingComplete={() => doneAssign(true)}
         alt='Web Development graphic'
         width={600}
         height={500}
-        onLoad={() => doneAssign(true)}
+        // onLoad={() => doneAssign(true)}
+        placeholder='blur'
       />
     </div>
   )
