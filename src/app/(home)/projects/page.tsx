@@ -80,7 +80,7 @@ function ProjectImage({ id }: { id: string }) {
                       : Wr
 
   return (
-    <div className='relative overflow-hidden'>
+    <div className='relative overflow-hidden group'>
       <div className='absolute inset-0 bg-neutral-600'></div>
 
       <span className='relative'>
@@ -89,7 +89,7 @@ function ProjectImage({ id }: { id: string }) {
           alt={`${id} project image`}
           width={401}
           height={226}
-          cn='object-fit aspect-video w-full rounded'
+          cn='object-fit aspect-video w-full rounded transition-transform group-hover:scale-[1.1] duration-300 ease-in-out'
         />
       </span>
 
