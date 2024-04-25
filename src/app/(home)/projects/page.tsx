@@ -89,6 +89,7 @@ function ProjectImage({ id }: { id: string }) {
           alt={`${id} project image`}
           width={401}
           height={226}
+          cn='object-fit aspect-video w-full rounded'
         />
       </span>
 

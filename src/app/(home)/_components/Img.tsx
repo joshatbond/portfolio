@@ -7,11 +7,12 @@ export default function Img(props: {
   height: number
   src: StaticImageData
   width: number
+  cn?: string
 }) {
   const [loaded, loadedAssign] = useState(false)
   return (
     <Image
-      className={`transition-opacity ${loaded ? 'opacity-100' : 'opacity-0'}`}
+      className={`transition-opacity ${loaded ? 'opacity-100' : 'opacity-0'}${props.cn ? ` ${props.cn}` : ''}`}
       onLoadingComplete={() => loadedAssign(true)}
       {...props}
     />
