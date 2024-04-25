@@ -38,9 +38,8 @@ export default function ProjectsPage() {
               <Link href={url} target='_blank'>
                 <div className='flex gap-1 hover:text-blue-200'>
                   <span>{title}</span>
-                  <a href={url}>
-                    <Share cn='w-3 h-3 mt-1.5 text-slate-200' />
-                  </a>
+
+                  <Share cn='w-3 h-3 mt-1.5 text-slate-200' />
                 </div>
               </Link>
 
