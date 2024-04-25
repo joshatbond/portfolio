@@ -83,12 +83,14 @@ function ProjectImage({ id }: { id: string }) {
     <div className='relative overflow-hidden'>
       <div className='absolute inset-0 bg-neutral-600'></div>
 
-      <Img
-        src={imageUrl}
-        alt={`${id} project image`}
-        width={401}
-        height={226}
-      />
+      <span className='relative'>
+        <Img
+          src={imageUrl}
+          alt={`${id} project image`}
+          width={401}
+          height={226}
+        />
+      </span>
 
       <div className='shine absolute inset-0' />
     </div>

@@ -1,5 +1,5 @@
 'use client'
-import Image, { StaticImageData } from 'next/image'
+import Image, { type StaticImageData } from 'next/image'
 import { useState } from 'react'
 
 export default function Img(props: {
