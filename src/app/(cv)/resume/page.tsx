@@ -16,25 +16,25 @@ import { env } from '~/env'
 
 export default function ResumePage() {
   return (
-    <article className='flex-1'>
-      <h1 className='py-4 text-center text-3xl'>Joshua Richardson</h1>
+    <article className="flex-1">
+      <h1 className="py-4 text-center text-3xl">Joshua Richardson</h1>
 
-      <section className='flex w-full px-10 print:h-full print:px-0 print:text-[8pt]'>
-        <aside className='w-1/3 bg-slate-400 p-4'>
-          <Section title='Contact'>
+      <section className="flex w-full px-10 print:h-full print:px-0 print:text-[8pt]">
+        <aside className="w-1/3 bg-slate-400 p-4">
+          <Section title="Contact">
             {resume.contact.map((item, index) => (
               <Contact {...item} key={index} />
             ))}
           </Section>
 
-          <Section title='Links'>
+          <Section title="Links">
             {resume.links.map((item, index) => (
               <LinkItem {...item} key={index} />
             ))}
           </Section>
 
-          <Section title='Skills'>
-            <div className='flex flex-wrap gap-2'>
+          <Section title="Skills">
+            <div className="flex flex-wrap gap-2">
               {resume.skills.map((skill, index) => (
                 <Skill {...skill} key={index} />
               ))}
@@ -42,18 +42,18 @@ export default function ResumePage() {
           </Section>
         </aside>
 
-        <div className='flex-1 bg-neutral-200 p-4 text-neutral-900'>
-          <Section title='Professional Summary' light>
+        <div className="flex-1 bg-neutral-200 p-4 text-neutral-900">
+          <Section title="Professional Summary" light>
             <p>{resume.objective}</p>
           </Section>
 
-          <Section title='Experience' light>
+          <Section title="Experience" light>
             {resume.experience.map((item, index) => (
               <Experience {...item} key={index} />
             ))}
           </Section>
 
-          <Section title='Education' light>
+          <Section title="Education" light>
             {resume.education.map((item, index) => (
               <Education {...item} key={index} />
             ))}
@@ -70,14 +70,14 @@ function Section({
   title,
 }: React.PropsWithChildren<{ light?: boolean; title: string }>) {
   return (
-    <div className='mb-2'>
+    <div className="mb-2">
       <h2
         className={`mb-4 border-b-2 pb-1 text-2xl ${light ? 'border-slate-600' : 'border-neutral-50'}`}
       >
         {title}
       </h2>
 
-      <div className='ml-6 flex flex-col gap-2 print:ml-0'>{children}</div>
+      <div className="ml-6 flex flex-col gap-2 print:ml-0">{children}</div>
     </div>
   )
 }
@@ -87,7 +87,7 @@ function Contact({ icon, text }: Contact) {
     case 'mail':
       return (
         <Link href={`mailto:${text}?subject=Resume Inquiry`}>
-          <div className='flex items-center gap-4'>
+          <div className="flex items-center gap-4">
             <MailIcon />
             <span>{text}</span>
           </div>
@@ -95,14 +95,14 @@ function Contact({ icon, text }: Contact) {
       )
     case 'loc':
       return (
-        <div className='flex items-center gap-4'>
+        <div className="flex items-center gap-4">
           <PinIcon />
           <span>{text}</span>
         </div>
       )
     case 'phone':
       return env.NODE_ENV === 'development' ? (
-        <div className='flex items-center gap-4'>
+        <div className="flex items-center gap-4">
           <PhoneIcon />
           <span>{text}</span>
         </div>
@@ -116,24 +116,24 @@ function LinkItem({ url, to }: TLink) {
   const isGithub = to == 'GH'
 
   return (
-    <div className='print:-ml-4 grid grid-flow-col gap-4'>
-      <div className='relative flex overflow-hidden text-clip rounded bg-neutral-300 text-black print:bg-transparent'>
-        <div className='flex flex-grow items-center justify-between gap-2 px-3'>
+    <div className="grid grid-flow-col gap-4 print:-ml-4">
+      <div className="relative flex overflow-hidden text-clip rounded bg-neutral-300 text-black print:bg-transparent">
+        <div className="flex flex-grow items-center justify-between gap-2 px-3">
           <span>
             {isGithub ? (
               <span>
-                <span className='print:hidden'>
+                <span className="print:hidden">
                   <GithubIcon size={16} />
                 </span>
-                <span className='hidden print:inline font-bold'>{to}</span>
+                <span className="hidden font-bold print:inline">{to}</span>
               </span>
             ) : (
-              <span className='font-bold'>{to}</span>
+              <span className="font-bold">{to}</span>
             )}
           </span>
 
-          <Link href={url} target='_blank'>
-            <span className='print:text-sm print:text-black print:no-underline hover:text-blue-600'>
+          <Link href={url} target="_blank">
+            <span className="hover:text-blue-600 print:text-sm print:text-black print:no-underline">
               {url}
             </span>
           </Link>
@@ -170,10 +170,10 @@ function Skill({ name, time, type }: Skill) {
 function Experience({ company, description, from, title, to }: Experience) {
   return (
     <div>
-      <div className='flex items-end justify-between'>
-        <p className='mb-0 text-sky-700'>
-          <span className='mr-2 font-medium text-neutral-900'>{title}</span>
-          <Link href={company.link} target='_blank'>
+      <div className="flex items-end justify-between">
+        <p className="mb-0 text-sky-700">
+          <span className="mr-2 font-medium text-neutral-900">{title}</span>
+          <Link href={company.link} target="_blank">
             {company.title}
           </Link>
         </p>
@@ -182,7 +182,7 @@ function Experience({ company, description, from, title, to }: Experience) {
         </span>
       </div>
 
-      <ul className='mb-4 ml-10 list-disc'>
+      <ul className="mb-4 ml-10 list-disc">
         {description.map((item, index) => (
           <li key={index}>{item}</li>
         ))}
@@ -194,11 +194,11 @@ function Experience({ company, description, from, title, to }: Experience) {
 function Education({ name, type, where }: Education) {
   return (
     <div>
-      <h2 className='text-lg font-medium text-slate-700'>{type}</h2>
+      <h2 className="text-lg font-medium text-slate-700">{type}</h2>
 
-      <div className='space-x-4 text-sm'>
+      <div className="space-x-4 text-sm">
         <span>{name}</span>
-        <span className='text-neutral-500'>{where}</span>
+        <span className="text-neutral-500">{where}</span>
       </div>
     </div>
   )

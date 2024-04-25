@@ -1,6 +1,7 @@
 'use client'
 
 import { Canvas } from '@react-three/fiber'
+
 import Crow from './Crow'
 
 export default function Logo() {

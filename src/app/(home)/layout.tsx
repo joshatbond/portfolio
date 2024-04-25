@@ -1,5 +1,4 @@
 import { Inter } from 'next/font/google'
-import Link from 'next/link'
 
 import '~/styles/globals.css'
 
@@ -33,7 +32,7 @@ export default function RootLayout({
           <div className="absolute bottom-[10%] right-[40%] h-16 w-16 rounded-full bg-yellow-ffc404"></div>
           <div className="absolute right-[50%] top-[15%] h-24 w-24 rounded-full bg-blue-08e2ff"></div>
 
-          <main className="bg-blur relative grid h-[86vh] w-3/4 grid-rows-[auto_1fr] rounded-lg border-2 border-white/70 bg-white/10 shadow-container">
+          <main className="bg-blur relative grid min-h-screen w-screen grid-rows-[auto_1fr] border-white/70 bg-white/10 shadow-container  sm:h-[86vh] sm:min-h-0 sm:w-3/4 sm:rounded-lg sm:border-2">
             <Header />
             {children}
           </main>
