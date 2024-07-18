@@ -24,34 +24,22 @@ export default function ProjectsPage() {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {resume.projects.map(({ id, repo, title, url }) => (
-          <div
-            className="group min-w-[250px] rounded bg-white/20 p-2"
-            key={url}
-          >
-            {id ? (
-              <ProjectImage id={id} />
-            ) : (
-              <div className="aspect-video w-full rounded bg-slate-400" />
-            )}
-
-            <div className="flex justify-between pt-1">
-              <Link href={url} target="_blank">
-                <div className="flex gap-1 hover:text-blue-200">
-                  <span>{title}</span>
-
-                  <Share cn="w-3 h-3 mt-1.5 text-slate-200" />
-                </div>
-              </Link>
-
-              <span className="hover:text-blue-200">
-                {repo && (
-                  <Link href={repo} target="_blank">
-                    Repository
-                  </Link>
-                )}
-              </span>
+          <Link href={url} target="_blank">
+            <div
+              className="group min-w-[250px] rounded bg-white/20 p-2"
+              key={url}
+            >
+              {id ? (
+                <ProjectImage id={id} />
+              ) : (
+                <div className="aspect-video w-full rounded bg-slate-400" />
+              )}
+  
+              <div className="pt-1 hover:text-blue-200">
+                <span>{title}</span>
+              </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </article>
