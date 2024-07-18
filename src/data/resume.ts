@@ -79,7 +79,7 @@ export const resume: Resume = {
     },
     {
       title: 'Oppenheimer',
-      url: 'https://www.oppenheimermovie.com/',
+      url: 'https://web.archive.org/web/20240510130935/https://www.oppenheimermovie.com/',
       id: 'oppenheimer',
     },
     {
