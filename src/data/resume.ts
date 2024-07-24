@@ -10,11 +10,6 @@ export const resume: Resume = {
       name: "Western Governor's University",
       where: 'Salt Lake City, UT',
     },
-    {
-      type: 'High School Diploma',
-      name: 'Etiwanda High School',
-      where: 'Etiwanda, CA',
-    },
   ],
   experience: [
     {
@@ -23,7 +18,12 @@ export const resume: Resume = {
       title: 'Software Engineer',
       company: { title: 'Bond', link: 'https://www.wearebond.com' },
       description: [
-        'Collaborate with development and design teams to build custom sites for upcoming gaming and entertainment pieces',
+        'Contributed to the technical effort by developing custom sites for upcoming gaming and entertainment projects, while collaborating cross-functionally with Development and Design teams, and delivering clean and scalable code in JavaScript with Vue.js and Nuxt.js.',
+        'Developed the Barbie Selfie Generator, enabling users to upload portraits and customize movie posters as Barbie/Ken, utilizing Nuxt.js, Vue 2, Automated CI, and AWS deployment, leading to an interactive and personalized user experience which reached viral status and attracted over 2 million site visits within the first 24 hours.',
+        "Contributed to the Oppenheimer movie site as a secondary engineer, incorporating 3D animations with three.js for exploring movie locations and characters, and implementing a multi-phase launch sequence, enhancing user engagement with the film's historical context.",
+        'Assisted in creating "The Watchers" movie site by integrating looping videos with location-based transitions according to the user\'s timezone, and supported "League of Legends" projects including Remix Rumble and the Wild Rift Anniversary Site, by developing mini-experiences and interactive fan engagement sites',
+        'Evaluated software solutions, deploying suites of tests including visual regression and cross-browser compatibility testing, utilizing browser emulation, BrowserStack, and Cypress for automating the visual regression testing to ensure thorough coverage and functionality across multiple platforms.',
+        'Deployed using GitHub Actions for testing environments and AWS for sharing production builds with clients.',
       ],
     },
     {
@@ -35,8 +35,11 @@ export const resume: Resume = {
         link: 'https://www.americanexpress.com/',
       },
       description: [
-        'Part of a team migrating monorepo GraphQL layer to federated GraphQL',
-        'Wrote express middleware to capture requests and responses in monorepo and cache in Kafka',
+        'Architected the transition of a monolithic GraphQL repository to a federated model with Apollo Federation, establishing metrics for the phased roll-out and creating middleware to time query execution and accuracy, feeding data into a Kafka event queue, while focusing on caching middleware.',
+        'Developed Express.js middleware to intercept and log requests and responses within a mono repository architecture, utilizing Kafka for caching mechanisms, ensuring a fast data retrieval performance.',
+        'Created clear, concise and user-friendly documentation, and wrote & maintained clean code with commenting for others to read, understand and collaborate easily.',
+        'Collaborated within a project team during sprint stand-ups on a greenfield project, maintaining focused communication and effectively addressing questions to clarify project details and ensure alignment.',
+        'Engaged in continuous learning and professional development, the team emphasized the mastery of GraphQL to become a Subject Matter Expert (SME), ensuring the integration of this advanced technology into the development process.',
       ],
     },
     {
@@ -48,9 +51,9 @@ export const resume: Resume = {
         link: 'https://www.linearlawenforcement.com/',
       },
       description: [
-        'Began rewriting DIMS software using modern technology',
-        'Built mobile app that allowed agencies to upload digital evidence from their phones, securely',
-        'Built node.js server to collect, process, and retain digital evidence',
+        'Built a mobile application allowing agencies to securely upload digital evidence, featuring encrypted data transmission and a user-friendly interface, integrating a multi-tenant authorization service, native iOS/Android modules for capturing RAW images hashed with SHA-256, and a secure file transfer system to maintain chain-of-custody.',
+        'Overhauled the DIMS software by integrating a React SPA with Apollo client for dynamic database fetching on the front-end, customizable for each client, and employing a Fastify server, Neo4j database, Redis for caching and JWT session management on the back-end, all aligned with CLEAN architecture principles for scalability and evolvability.',
+        'Developed a robust Node.js server on a custom-built Gentoo Linux box, incorporating Docker Swarm to dynamically manage node servers based on demand, and integrated asynchronous programming, event-driven architecture, and error handling mechanisms to systematically collect, process, and securely retain digital evidence while ensuring data redundancy across multiple on-premises servers using CRON jobs and RSYNC.',
       ],
     },
   ],
@@ -58,8 +61,12 @@ export const resume: Resume = {
     { url: 'https://github.com/joshatbond', to: 'GH' },
     { url: 'https://portfolio.cursedtale.com', to: 'CV' },
   ],
-  objective:
-    'Full-Stack Web developer interested in functional programming and type-safety with 4 years experience seeking a position that allows for continued growth and challenges to continue to improve my skillset.',
+  objective: [
+    'Full-Stack Web developer with a wealth of experience delivering complex solutions including entertainment web applications and inventory management systems within fast-paced environments.',
+    'Extensive technical skill set, with mastery in JavaScript, TypeScript, and Node.js; proficient in cloud services (Docker, Traefik) and databases (PostgreSQL, MongoDB), enhancing infrastructure reliability and performance.',
+    'Impactful contributions during each phase of the Software Development Life Cycle, from architectural design to deployment and optimization, using blue-green deployments and canary releases for efficient system performance.',
+    'Engaged collaborator with strong interpersonal skills, able to influence and align multiple teams with conflicting priorities to drive progress under aggressive time constraints.',
+  ],
   projects: [
     {
       title: 'Grepl',
@@ -142,7 +149,7 @@ export type Resume = {
   education: Education[]
   experience: Experience[]
   links: Link[]
-  objective: string
+  objective: string[]
   projects: Project[]
   skills: Skill[]
 }

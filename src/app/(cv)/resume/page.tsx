@@ -44,7 +44,11 @@ export default function ResumePage() {
 
         <div className="flex-1 bg-neutral-200 p-4 text-neutral-900">
           <Section title="Professional Summary" light>
-            <p>{resume.objective}</p>
+            <ul className="mb-4 ml-10 list-disc space-y-2">
+              {resume.objective.map((item, index) => (
+                <li key={index}>{item}</li>
+              ))}
+            </ul>
           </Section>
 
           <Section title="Experience" light>
@@ -182,7 +186,7 @@ function Experience({ company, description, from, title, to }: Experience) {
         </span>
       </div>
 
-      <ul className="mb-4 ml-10 list-disc">
+      <ul className="mb-4 ml-10 list-disc space-y-2">
         {description.map((item, index) => (
           <li key={index}>{item}</li>
         ))}
