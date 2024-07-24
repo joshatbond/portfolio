@@ -1,15 +1,17 @@
 'use client'
 
-import { type ReactNode } from 'react'
+import { type ReactNode, isValidElement, useRef } from 'react'
 
 import { FormProvider, useForm } from './FormContext'
 
 export default function CoverLetterGenerator() {
   return (
     <FormProvider>
-      <div className="flex gap-4 p-4 [--output-height:85vh]">
-        <Form />
-        <Output />
+      <div>
+        <div className="flex gap-4 px-4 pt-4 [--output-height:85vh]">
+          <Form />
+          <Output />
+        </div>
       </div>
     </FormProvider>
   )
@@ -176,58 +178,6 @@ function Form() {
               />
             }
           />
-          {/* address */}
-          <div className="flex items-center gap-4 pt-4">
-            <h3 className="text-lg">Address</h3>
-            <Checkbox
-              id="use-company-address"
-              checked={state.companyAddress.show}
-              update={payload =>
-                dispatch({
-                  type: 'companyAddressShow',
-                  payload,
-                })
-              }
-            />
-          </div>
-          <div className="space-y-2 pl-6">
-            <TextInput
-              id="company-street"
-              label="Street"
-              name="company-street"
-              value={state.companyAddress.value.street}
-              update={payload =>
-                dispatch({ type: 'companyStreetAssign', payload })
-              }
-            />
-            <TextInput
-              id="company-city"
-              label="City"
-              name="company-city"
-              value={state.companyAddress.value.city}
-              update={payload =>
-                dispatch({ type: 'companyCityAssign', payload })
-              }
-            />
-            <TextInput
-              id="company-state"
-              label="State"
-              name="company-state"
-              value={state.companyAddress.value.state}
-              update={payload =>
-                dispatch({ type: 'companyStateAssign', payload })
-              }
-            />
-            <TextInput
-              id="company-zip"
-              label="Zip"
-              name="company-zip"
-              value={state.companyAddress.value.zip}
-              update={payload =>
-                dispatch({ type: 'companyZipAssign', payload })
-              }
-            />
-          </div>
         </section>
       </div>
     </form>
@@ -291,106 +241,195 @@ function TextInput({
 
 function Output() {
   const { state } = useForm()
+  const contentRef = useRef<HTMLDivElement>(null)
+
+  const onClick = () => {
+    const text = parse(contentRef.current?.innerHTML)
+    const blob = new Blob([text], { type: 'text/plain' })
+    const hiddenElement = document.createElement('a')
+    hiddenElement.href = URL.createObjectURL(blob)
+    hiddenElement.download = 'cover-letter.txt'
+    hiddenElement.click()
+  }
+  const parse = (s?: string) => {
+    if (!s) return ''
+    return s
+      .replace(/\<div\>|\<\/div\>/g, '')
+      .replace(/\<\/p\>\<p\>/g, '\n\n')
+      .replace(/(\<p\>|\<\/p\>|\<span\>|\<\/span\>)/g, '')
+  }
 
   return (
-    <div className="h-[var(--output-height)] flex-1 space-y-4 overflow-hidden overscroll-contain rounded bg-neutral-100 p-4 pr-1 shadow">
-      <div className="h-[calc(var(--output-height)-2rem)] space-y-4 overflow-auto overscroll-contain">
-        <div>
-          {state.name.show ? <p>{state.name.value}</p> : null}
-          {state.address.show ? (
-            <div>
-              <p>{state.address.value.street}</p>
-              <p>
-                {state.address.value.city}, {state.address.value.state}{' '}
-                {state.address.value.zip}
-              </p>
-            </div>
+    <div className="flex h-[var(--output-height)] flex-1 flex-col gap-4 overflow-hidden overscroll-contain rounded bg-neutral-100 p-4 pr-1 shadow">
+      <div
+        ref={contentRef}
+        className="max-h-[calc(var(--output-height)-4rem)] flex-1 space-y-4 overflow-auto overscroll-contain"
+      >
+        <p>
+          Dear <Field placeholder="Company" value={state.companyName.value} />{' '}
+          Talent Acquisition team,
+        </p>
+        <p>
+          I am reaching out to express my interest in the{' '}
+          <Field placeholder="Software Engineer" value={state.position.value} />{' '}
+          position
+          {state.source.show ? (
+            <>
+              {' '}
+              recently advertised on{' '}
+              <Field
+                placeholder="Job Site/Career site"
+                value={state.source.value}
+              />
+            </>
           ) : null}
-          {state.email.show ? <p>{state.email.value}</p> : null}
-          {state.phone.show ? <p>{state.phone.value}</p> : null}
-          {new Intl.DateTimeFormat('en-US', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-          }).format(new Date())}
-        </div>
-
-        <div>
-          {state.companyName.show ? <p>{state.companyName.value}</p> : null}
-          {state.companyAddress.show ? (
-            <div>
-              <p>{state.companyAddress.value.street}</p>
-              <p>
-                {state.companyAddress.value.city},{' '}
-                {state.companyAddress.value.state}{' '}
-                {state.companyAddress.value.zip}
-              </p>
-            </div>
-          ) : null}
-        </div>
-
-        <p>
-          I am writing to express my interest in the{' '}
-          <Field placeholder="position" value={state.position.value} /> position
-          at{' '}
-          <Field placeholder="Company Name" value={state.companyName.value} />,
-          as advertised on{' '}
-          <Field
-            placeholder="where you found the job posting"
-            value={state.source.value}
-          />
-          . With a solid background in both front-end and back-end development,
-          combined with a passion for creating innovative web solutions, I am
-          confident in my ability to contribute effectively to your team.
+          .
         </p>
 
         <p>
-          <Field
-            placeholder="In my previous role at [Previous Company], I was responsible for
-          developing and maintaining several web applications from conception to
-          deployment. I have experience with a variety of programming languages
-          and frameworks including HTML, CSS, JavaScript, React.js, Node.js, and
-          MongoDB, allowing me to create dynamic and responsive web experiences.
-          My proficiency in both client-side and server-side development enables
-          me to tackle complex challenges and deliver high-quality solutions
-          within tight deadlines."
-            value=""
-          />
+          After thoroughly analyzing the job description, I recognized three
+          primary requirements essential for success in this role: expertise in
+          modern JavaScript frameworks, proficiency in building scalable
+          cloud-based architectures, and a strong track record in managing full
+          lifecycle software development projects. My background and skills
+          align well with these expectations.
         </p>
 
         <p>
-          <Field
-            placeholder="One project I am particularly proud of is [mention a specific project
-          or achievement that demonstrates your skills and experience]. By
-          leveraging my expertise in full-stack development, I was able to
-          enhance the user experience, optimize performance, and improve overall
-          efficiency, resulting in [specific positive outcome or impact]."
-            value=""
-          />
+          My technical proficiency in JavaScript, TypeScript, and frameworks
+          like Node.js, React, and Vue, supplemented by my hands-on experience
+          with cloud services like Docker and databases such as PostgreSQL and
+          MongoDB, enable me to construct and scale effective software solutions
+          efficiently. At Bond, I led the development of high-traffic web
+          applications for the entertainment sector, which not only met but
+          exceeded performance benchmarks through strategic use of these
+          technologies.
         </p>
 
         <p>
-          I am also adept at collaborating with cross-functional teams,
-          communicating technical concepts to non-technical stakeholders, and
-          staying updated on emerging technologies and best practices in web
-          development. I am excited about the opportunity to bring my unique
-          blend of technical skills, creativity, and problem-solving abilities
-          to{' '}
-          <Field placeholder="Company Name" value={state.companyName.value} />.
+          Furthermore, I have a solid foundation in designing and deploying
+          robust cloud-based architectures, essential for ensuring high
+          availability and resilience of system infrastructures. For example, at
+          American Express, I architected the transition of a GraphQL repository
+          to a federated model, enhancing system flexibility and performance,
+          demonstrating my capability to innovate and improve existing systems.
         </p>
 
         <p>
-          I am highly motivated to join a dynamic team where I can continue to
-          grow both personally and professionally while making meaningful
-          contributions to exciting projects. Thank you for considering my
-          application. I look forward to the possibility of discussing how my
-          skills and experiences align with the needs of your team.
+          Lastly, my role at Linear Systems Inc involved overseeing projects
+          from conception through to deployment, emphasizing the importance of
+          meticulous project management. This experience sharpened my ability to
+          manage project timelines and deliverables effectively, ensuring all
+          phases of the software development lifecycle are executed to the
+          highest standard, which I am eager to leverage at{' '}
+          <Field placeholder="Company" value={state.companyName.value} />.
+        </p>
+
+        <p>
+          I would be delighted to be granted an opportunity for an interview,
+          during which I can tell you more about my skills and experience, and
+          prove to you that I am the right fit for this role. I hope that you
+          will give me a chance to contribute to your mission and growth going
+          forward. I look forward to hearing from you.
         </p>
 
         <div>
-          <p>Sincerely,</p>
+          <p>Yours sincerely,</p>
           <p>{state.name.value}</p>
+          <p>{state.email.value}</p>
+          {state.phone.show ? <p>{state.phone.value}</p> : null}
         </div>
+      </div>
+
+      <div className="mr-3 flex">
+        <button
+          onClick={onClick}
+          className="flex-1 rounded-md bg-blue-700 px-4 py-1 text-white outline-none focus-within:bg-blue-500 hover:bg-blue-500 active:bg-blue-500"
+        >
+          Download
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function Content() {
+  const { state } = useForm()
+  return (
+    <div className="max-h-[calc(var(--output-height)-4rem)] flex-1 space-y-4 overflow-auto overscroll-contain">
+      <p>
+        Dear <Field placeholder="Company" value={state.companyName.value} />{' '}
+        Talent Acquisition team,
+      </p>
+      <p>
+        I am reaching out to express my interest in the{' '}
+        <Field placeholder="Software Engineer" value={state.position.value} />{' '}
+        position
+        {state.source.show ? (
+          <>
+            {' '}
+            recently advertised on{' '}
+            <Field
+              placeholder="Job Site/Career site"
+              value={state.source.value}
+            />
+          </>
+        ) : null}
+        .
+      </p>
+
+      <p>
+        After thoroughly analyzing the job description, I recognized three
+        primary requirements essential for success in this role: expertise in
+        modern JavaScript frameworks, proficiency in building scalable
+        cloud-based architectures, and a strong track record in managing full
+        lifecycle software development projects. My background and skills align
+        well with these expectations.
+      </p>
+
+      <p>
+        My technical proficiency in JavaScript, TypeScript, and frameworks like
+        Node.js, React, and Vue, supplemented by my hands-on experience with
+        cloud services like Docker and databases such as PostgreSQL and MongoDB,
+        enable me to construct and scale effective software solutions
+        efficiently. At Bond, I led the development of high-traffic web
+        applications for the entertainment sector, which not only met but
+        exceeded performance benchmarks through strategic use of these
+        technologies.
+      </p>
+
+      <p>
+        Furthermore, I have a solid foundation in designing and deploying robust
+        cloud-based architectures, essential for ensuring high availability and
+        resilience of system infrastructures. For example, at American Express,
+        I architected the transition of a GraphQL repository to a federated
+        model, enhancing system flexibility and performance, demonstrating my
+        capability to innovate and improve existing systems.
+      </p>
+
+      <p>
+        Lastly, my role at Linear Systems Inc involved overseeing projects from
+        conception through to deployment, emphasizing the importance of
+        meticulous project management. This experience sharpened my ability to
+        manage project timelines and deliverables effectively, ensuring all
+        phases of the software development lifecycle are executed to the highest
+        standard, which I am eager to leverage at{' '}
+        <Field placeholder="Company" value={state.companyName.value} />.
+      </p>
+
+      <p>
+        I would be delighted to be granted an opportunity for an interview,
+        during which I can tell you more about my skills and experience, and
+        prove to you that I am the right fit for this role. I hope that you will
+        give me a chance to contribute to your mission and growth going forward.
+        I look forward to hearing from you.
+      </p>
+
+      <div>
+        <p>Yours sincerely,</p>
+        <p>{state.name.value}</p>
+        <p>{state.email.value}</p>
+        {state.phone.show ? <p>{state.phone.value}</p> : null}
       </div>
     </div>
   )

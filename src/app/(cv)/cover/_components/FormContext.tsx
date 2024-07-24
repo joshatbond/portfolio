@@ -89,44 +89,6 @@ function formReducer(state: State, action: Action) {
         ...state,
         companyName: { ...state.companyName, show: action.payload },
       }
-
-    case 'companyStreetAssign':
-      return {
-        ...state,
-        companyAddress: {
-          ...state.companyAddress,
-          value: { ...state.companyAddress.value, street: action.payload },
-        },
-      }
-    case 'companyCityAssign':
-      return {
-        ...state,
-        companyAddress: {
-          ...state.companyAddress,
-          value: { ...state.companyAddress.value, city: action.payload },
-        },
-      }
-    case 'companyStateAssign':
-      return {
-        ...state,
-        companyAddress: {
-          ...state.companyAddress,
-          value: { ...state.companyAddress.value, state: action.payload },
-        },
-      }
-    case 'companyZipAssign':
-      return {
-        ...state,
-        companyAddress: {
-          ...state.companyAddress,
-          value: { ...state.companyAddress.value, zip: action.payload },
-        },
-      }
-    case 'companyAddressShow':
-      return {
-        ...state,
-        companyAddress: { ...state.companyAddress, show: action.payload },
-      }
     default:
       throw new Error(`Unknown action type: ${action}`)
   }
@@ -144,16 +106,12 @@ export function FormProvider({ children }: PropsWithChildren) {
       },
       show: false,
     },
-    email: { value: 'josh@cursedtale.com', show: false },
+    email: { value: 'josh@cursedtale.com', show: true },
     phone: { value: '+19096809275', show: false },
 
     position: { value: '', show: true },
-    source: { value: '', show: false },
-    companyName: { value: '', show: false },
-    companyAddress: {
-      value: { street: '', city: '', state: '', zip: '' },
-      show: false,
-    },
+    source: { value: '', show: true },
+    companyName: { value: '', show: true },
   })
 
   const value = { state, dispatch }
@@ -179,7 +137,6 @@ export type State = {
   position: Field<string>
   source: Field<string>
   companyName: Field<string>
-  companyAddress: Field<Address>
 }
 export type Action =
   | { type: 'nameAssign'; payload: string }
@@ -199,11 +156,6 @@ export type Action =
   | { type: 'sourceShow'; payload: boolean }
   | { type: 'companyNameAssign'; payload: string }
   | { type: 'companyNameShow'; payload: boolean }
-  | { type: 'companyStreetAssign'; payload: string }
-  | { type: 'companyCityAssign'; payload: string }
-  | { type: 'companyStateAssign'; payload: string }
-  | { type: 'companyZipAssign'; payload: string }
-  | { type: 'companyAddressShow'; payload: boolean }
 type Dispatch = (action: Action) => void
 
 type Field<T> = { value: T; show: boolean }
