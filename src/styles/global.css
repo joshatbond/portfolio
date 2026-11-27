@@ -17,9 +17,10 @@ html {
   background: var(--pool-deep);
 }
 
+/* The page colour lives on <html> (the canvas) only, so decorative layers
+   at z-index -1, like the surface light, still paint above it. */
 body {
   min-height: 100svh;
-  background: var(--pool-deep);
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: 16px;
@@ -108,18 +109,17 @@ ol {
   transform: none;
 }
 
-/* Copy that the mobile frames shorten: render both, show one. */
-.wide-only {
-  display: none;
+/* Copy that the mobile frames shorten: render both, show one. The hide wins
+   over any component display rule; elsewhere the element keeps its own. */
+@media (max-width: 719.98px) {
+  .wide-only {
+    display: none !important;
+  }
 }
 
 @media (min-width: 720px) {
-  .wide-only {
-    display: revert;
-  }
-
   .narrow-only {
-    display: none;
+    display: none !important;
   }
 }
 

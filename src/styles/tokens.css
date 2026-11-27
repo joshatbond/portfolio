@@ -16,6 +16,11 @@
   --text-primary: #f3f5f7;
   --text-secondary: #a4aebb;
   --text-tertiary: #6c7786;
+  /* Muted text on lit surfaces (panels, the surface-light band), where the
+     plain tokens drop below their contrast minimum on the rendered pixels:
+     4.57:1 for text (tertiary on pool/deep) and 7:1 for link labels. */
+  --text-tertiary-lit: color-mix(in srgb, var(--text-tertiary) 50%, var(--text-secondary));
+  --text-secondary-lit: color-mix(in srgb, var(--text-secondary) 70%, var(--text-primary));
   --text-on-accent: #112227;
   --text-accent: #67e8f9;
   --accent-default: #06b6d4;
@@ -53,8 +58,6 @@
   /* Layout */
   --content-max: 1200px;
   --gutter: 20px;
-  /* Nav height (2px rim + bar), so the surface light can reach up behind it. */
-  --nav-h: 62px;
 
   /* Focus: a 2px cyan ring with a 4px offset on every interactive element. */
   --focus-ring: 2px solid var(--accent-hover);
@@ -77,6 +80,5 @@
 @media (min-width: 720px) {
   :root {
     --gutter: 40px;
-    --nav-h: 82px;
   }
 }

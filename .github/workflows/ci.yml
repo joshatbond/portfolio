@@ -21,6 +21,6 @@ jobs:
       - name: Build
         run: pnpm build
       - name: NDA guard
-        run: node scripts/check-nda.mjs src public dist
+        run: node scripts/check-nda.mjs
         env:
           NDA_TERMS: ${{ secrets.NDA_TERMS }}

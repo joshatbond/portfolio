@@ -4,14 +4,14 @@
   "type": "module",
   "packageManager": "pnpm@9.9.0",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.23.4"
   },
   "scripts": {
     "dev": "astro dev",
     "build": "sh scripts/slot.sh astro build",
     "preview": "astro preview",
     "check": "sh scripts/slot.sh astro check",
-    "check:nda": "node scripts/check-nda.mjs src public dist",
+    "check:nda": "node scripts/check-nda.mjs",
     "check:contrast": "node scripts/check-contrast.mjs",
     "screenshot": "node scripts/screenshot.mjs",
     "astro": "astro"
@@ -30,7 +30,6 @@
     "@types/react": "^19.3.3",
     "@types/react-dom": "^19.3.0",
     "playwright": "1.56.1",
-    "png-to-ico": "^3.0.2",
     "sharp": "^0.35.5",
     "typescript": "^6.0.3"
   }

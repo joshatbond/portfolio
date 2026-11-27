@@ -27,18 +27,53 @@ const { current, isIndex, surface, ...meta } = Astro.props
 
 <BaseLayout {...meta}>
   <a class="skip-link" href="#main">Skip to content</a>
-  <Nav current={current} isIndex={isIndex} />
-  <main id="main" tabindex="-1">
-    <SurfaceLight {...surface}>
-      <slot name="header" />
-    </SurfaceLight>
-    <slot />
-  </main>
+  <div class="page">
+    <SurfaceLight class="band" {...surface} />
+    <Nav current={current} isIndex={isIndex} />
+    <main id="main" tabindex="-1">
+      <div class="page-header"><slot name="header" /></div>
+      <div class="page-body"><slot /></div>
+    </main>
+  </div>
   <Footer />
 </BaseLayout>
 
 <style>
+  /* The surface light spans the nav row and the page-header row, whatever
+     their heights; main uses subgrid so its header sits in the second row. */
+  .page {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+  }
+
+  .page > :global(.band) {
+    z-index: -1;
+    grid-area: 1 / 1 / 3 / 2;
+  }
+
+  .page > :global(.site-nav) {
+    grid-area: 1 / 1;
+  }
+
+  main {
+    display: grid;
+    grid-area: 2 / 1 / 4 / 2;
+    grid-template-rows: subgrid;
+    min-width: 0;
+  }
+
   main:focus {
     outline: none;
+  }
+
+  .page-header {
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .page-body {
+    grid-row: 2;
+    min-width: 0;
   }
 </style>

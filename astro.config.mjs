@@ -1,12 +1,13 @@
 // @ts-check
 import { defineConfig, fontProviders } from 'astro/config'
 import react from '@astrojs/react'
+import { site } from './src/config/site.ts'
 
 /** @param {string} pkg @param {string} file */
 const fontsource = (pkg, file) => `@fontsource-variable/${pkg}/files/${file}`
 
 export default defineConfig({
-  site: 'https://joshuarichardson.me',
+  site: site.url,
   output: 'static',
   // `/projects` and `/projects/dice-augur` are the canonical URLs: emit
   // `projects.html` style files so static hosts serve them without a redirect.

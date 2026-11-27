@@ -1,12 +1,13 @@
 ---
 import PageLayout from '../../layouts/PageLayout.astro'
+import { site } from '../../config/site'
 ---
 
 <PageLayout
   title="Projects"
-  description="Things Joshua Richardson has designed and built: Dice Augur, a full-stack notebook for tabletop games; Paloma Valley Show, a live show companion; and professional work on evidence systems and GraphQL."
+  description={`Things ${site.name} has designed and built: Dice Augur, a full-stack notebook for tabletop games; Paloma Valley Show, a live show companion; and professional work on evidence systems and GraphQL.`}
   ogImage="/og/projects.png"
-  ogImageAlt="Projects by Joshua Richardson: things I've built."
+  ogImageAlt={`Projects by ${site.name}: things I've built.`}
   current="projects"
   isIndex
 >
@@ -50,7 +51,7 @@ import PageLayout from '../../layouts/PageLayout.astro'
   }
 
   .meta {
-    color: var(--text-tertiary);
+    color: var(--text-tertiary-lit);
   }
 
   @media (min-width: 720px) {

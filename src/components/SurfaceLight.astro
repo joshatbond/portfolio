@@ -2,9 +2,8 @@
 /**
  * The inner-page "surface light" band: cyan caustics (tiled at 50% scale,
  * ~8% opacity, screen blend) over pool/deep, a fade to #000204 going down the
- * band, and a soft cyan radial glow under the nav. It wraps the page header
- * (inside <main>) and its light layers reach up behind the nav by --nav-h, so
- * the band starts at the top of the page.
+ * band, and a soft cyan radial glow under the nav. It's a decorative layer;
+ * PageLayout places it across the nav and page-header rows.
  */
 import { getImage } from 'astro:assets'
 import caustics from '../assets/textures/caustics-cyan.png'
@@ -27,23 +26,21 @@ const style = [
 ].join(';')
 ---
 
-<div class:list={['surface-light', className]} style={style}>
-  <slot />
-</div>
+<div class:list={['surface-light', className]} style={style} aria-hidden="true"></div>
 
 <style>
   .surface-light {
     position: relative;
     isolation: isolate;
+    pointer-events: none;
   }
 
   .surface-light::before,
   .surface-light::after {
     content: '';
     position: absolute;
-    inset: calc(-1 * var(--nav-h)) 0 0;
+    inset: 0;
     z-index: -1;
-    pointer-events: none;
   }
 
   .surface-light::before {
