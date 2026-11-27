@@ -1,0 +1,13 @@
+{
+  "name": "Joshua Richardson",
+  "short_name": "Joshua R.",
+  "description": "Full-stack engineer — frontend focus",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#000204",
+  "theme_color": "#000204",
+  "icons": [
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

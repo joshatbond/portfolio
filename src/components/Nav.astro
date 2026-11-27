@@ -1,0 +1,165 @@
+---
+/**
+ * Inner-page navigation (Figma "Nav / Desktop" 2035:575, "Nav / Mobile" 2035:598).
+ * The 2px neon rim on top is the same rim as the homepage's tub edge, and it
+ * holds still between pages (view-transition-name: rim).
+ */
+import { site } from '../config/site'
+import Icon from './Icon.astro'
+import IconButton from './IconButton.astro'
+
+interface Props {
+  /** Highlights the section link for the current page. */
+  current?: 'projects'
+  /** True when the current page is the section index itself. */
+  isIndex?: boolean
+}
+
+const { current, isIndex = false } = Astro.props
+const projectsCurrent = current === 'projects' ? (isIndex ? 'page' : 'true') : undefined
+---
+
+<header class="site-nav">
+  <div class="rim" aria-hidden="true"></div>
+  <nav class="bar" aria-label="Main">
+    <a class="home" href="/">
+      <span class="mark" aria-hidden="true"><Icon name="waves" size={18} /></span>
+      <span class="name">{site.name}</span>
+    </a>
+    <ul class="links">
+      <li><a class="link" href="/projects" aria-current={projectsCurrent}>Projects</a></li>
+      <li><a class="link" href={site.links.resume} aria-label="Resume (PDF)">Resume</a></li>
+      <li class="divider" aria-hidden="true"></li>
+      <li class="wide-only"><IconButton href={site.links.github} icon="github" label="GitHub" external /></li>
+      <li class="wide-only"><IconButton href={site.links.linkedin} icon="linkedin" label="LinkedIn" external /></li>
+    </ul>
+  </nav>
+</header>
+
+<style>
+  .site-nav {
+    position: relative;
+    z-index: 10;
+  }
+
+  .rim {
+    height: 2px;
+    background: var(--accent-hover);
+    box-shadow: var(--rim-glow);
+    view-transition-name: rim;
+  }
+
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: 12px 16px;
+  }
+
+  .home {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: var(--radius-full);
+    color: var(--text-primary);
+    font: 500 13px/18px var(--font-body);
+  }
+
+  .mark {
+    display: inline-flex;
+    padding: 9px;
+    border: 1px solid rgb(103 232 249 / 0.35);
+    border-radius: var(--radius-full);
+    background: rgb(103 232 249 / 0.08);
+    color: var(--text-accent);
+    transition:
+      background 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .mark :global(.icon) {
+    width: 16px;
+    height: 16px;
+  }
+
+  .home:hover .mark {
+    background: rgb(103 232 249 / 0.14);
+    box-shadow: 0 0 16px rgb(6 182 212 / 0.35);
+  }
+
+  .links {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .link {
+    display: inline-flex;
+    padding: 7px 12px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-full);
+    color: var(--text-secondary);
+    font: 500 13px/18px var(--font-body);
+    transition:
+      background 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .link:hover {
+    background: var(--glass-soft);
+    color: var(--text-primary);
+  }
+
+  .link[aria-current] {
+    border-color: var(--glass-soft-stroke);
+    background: var(--glass-soft);
+    color: var(--text-primary);
+  }
+
+  .divider {
+    display: none;
+  }
+
+  @media (min-width: 720px) {
+    .bar {
+      padding: 18px var(--gutter);
+    }
+
+    .home {
+      gap: var(--space-3);
+      font-size: 15px;
+      line-height: 20px;
+      letter-spacing: -0.002em;
+    }
+
+    .mark {
+      padding: 10px;
+    }
+
+    .mark :global(.icon) {
+      width: 18px;
+      height: 18px;
+    }
+
+    .links {
+      gap: 6px;
+    }
+
+    .link {
+      padding: 9px 16px;
+      font-size: 15px;
+      line-height: 20px;
+      letter-spacing: -0.002em;
+    }
+
+    .divider {
+      display: block;
+      align-self: stretch;
+      margin: 12px 8px;
+      border-left: 1px solid var(--border-subtle);
+    }
+  }
+</style>

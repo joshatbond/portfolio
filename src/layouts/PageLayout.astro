@@ -1,0 +1,44 @@
+---
+/**
+ * Inner-page shell: the surface-light band (nav + page header), the page
+ * content, and the footer.
+ */
+import BaseLayout from './BaseLayout.astro'
+import Nav from '../components/Nav.astro'
+import Footer from '../components/Footer.astro'
+import SurfaceLight from '../components/SurfaceLight.astro'
+
+interface Props {
+  title?: string
+  description?: string
+  ogImage?: string
+  ogImageAlt?: string
+  current?: 'projects'
+  isIndex?: boolean
+  /** Surface-light settings for this page's top band. */
+  surface?: {
+    opacity?: number
+    glow?: { y: string; rx: string; ry: string; alpha: number }
+  }
+}
+
+const { current, isIndex, surface, ...meta } = Astro.props
+---
+
+<BaseLayout {...meta}>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <Nav current={current} isIndex={isIndex} />
+  <main id="main" tabindex="-1">
+    <SurfaceLight {...surface}>
+      <slot name="header" />
+    </SurfaceLight>
+    <slot />
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  main:focus {
+    outline: none;
+  }
+</style>

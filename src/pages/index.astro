@@ -1,0 +1,37 @@
+---
+// Temporary homepage for the scaffold step. Step 3 replaces it with the pool
+// scene's DOM layer and its static still.
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Button from '../components/Button.astro'
+import { site } from '../config/site'
+---
+
+<BaseLayout>
+  <main class="temp">
+    <h1 class="t-display-xl">{site.name}</h1>
+    <p class="t-eyebrow">{site.title}</p>
+    <div class="actions">
+      <Button href={site.links.resume} size="pill" icon="arrow-right" label="Resume (PDF)">Resume</Button>
+      <Button href="/projects" size="pill" tone="outline" icon="arrow-right">Projects</Button>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .temp {
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: var(--space-6);
+    min-height: 100svh;
+    padding: var(--gutter);
+    text-align: center;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-6);
+  }
+</style>
