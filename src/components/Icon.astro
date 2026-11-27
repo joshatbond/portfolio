@@ -1,0 +1,34 @@
+---
+/**
+ * UI icons exported from Figma (24×24 grid, 1.75 stroke). They draw in
+ * `currentColor`, so they take the colour of the surrounding text.
+ */
+const icons = import.meta.glob<{ default: (props: Record<string, unknown>) => unknown }>('../icons/*.svg', { eager: true })
+
+export type IconName =
+  | 'arrow-left'
+  | 'arrow-right'
+  | 'arrow-up'
+  | 'arrow-up-right'
+  | 'file-text'
+  | 'github'
+  | 'info'
+  | 'linkedin'
+  | 'mail'
+  | 'maximize'
+  | 'play'
+  | 'waves'
+  | 'x'
+
+interface Props {
+  name: IconName
+  size?: number
+  class?: string
+}
+
+const { name, size = 16, class: className } = Astro.props
+const Svg = icons[`../icons/${name}.svg`]?.default
+if (!Svg) throw new Error(`Unknown icon: ${name}`)
+---
+
+<Svg width={size} height={size} class:list={['icon', className]} aria-hidden="true" focusable="false" />

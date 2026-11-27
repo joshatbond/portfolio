@@ -1,0 +1,52 @@
+---
+/** Round glass icon button (Figma "Icon button" 2007:381). */
+import Icon, { type IconName } from './Icon.astro'
+
+interface Props {
+  href: string
+  icon: IconName
+  /** Accessible name, e.g. "GitHub". */
+  label: string
+  external?: boolean
+  class?: string
+}
+
+const { href, icon, label, external = false, class: className } = Astro.props
+---
+
+<a
+  href={href}
+  class:list={['icon-button', className]}
+  aria-label={external ? `${label} (opens in a new tab)` : label}
+  title={label}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener' : undefined}
+>
+  <Icon name={icon} size={18} />
+</a>
+
+<style>
+  .icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    border: 1px solid var(--glass-soft-stroke);
+    border-radius: var(--radius-full);
+    background: var(--glass-soft);
+    color: var(--text-primary);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    transition:
+      background 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .icon-button:hover,
+  .icon-button:focus-visible {
+    border-color: rgb(103 232 249 / 0.45);
+    background: rgb(103 232 249 / 0.1);
+    color: var(--text-accent);
+  }
+</style>

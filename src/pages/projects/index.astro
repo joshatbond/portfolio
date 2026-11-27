@@ -1,0 +1,66 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro'
+import { site } from '../../config/site'
+---
+
+<PageLayout
+  title="Projects"
+  description={`Things ${site.name} has designed and built: Dice Augur, a full-stack notebook for tabletop games; Paloma Valley Show, a live show companion; and professional work on evidence systems and GraphQL.`}
+  ogImage="/og/projects.png"
+  ogImageAlt={`Projects by ${site.name}: things I've built.`}
+  current="projects"
+  isIndex
+>
+  <header slot="header" class="page-head">
+    <div class="container stack">
+      <p class="t-eyebrow eyebrow">Projects · 2020 – 2026</p>
+      <h1 class="t-display-l">Projects</h1>
+      <p class="t-body-l lede">
+        <span class="wide-only">
+          Things I’ve designed and built: a full-stack notebook for tabletop games, a live show where every phone in the
+          audience became a Game Boy, and professional work on evidence-handling systems and GraphQL infrastructure.
+        </span>
+        <span class="narrow-only">
+          Things I’ve designed and built: a full-stack notebook for tabletop games, a live show where every phone became a
+          Game Boy, and professional work on evidence systems and GraphQL.
+        </span>
+      </p>
+      <p class="t-tag meta">1 live app · 1 freelance show · 3 roles</p>
+    </div>
+  </header>
+</PageLayout>
+
+<style>
+  .page-head {
+    padding-block: 44px 36px;
+  }
+
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .eyebrow {
+    color: var(--text-accent);
+  }
+
+  .lede {
+    max-width: 780px;
+    color: var(--text-secondary);
+  }
+
+  .meta {
+    color: var(--text-tertiary-lit);
+  }
+
+  @media (min-width: 720px) {
+    .page-head {
+      padding-block: 88px 64px;
+    }
+
+    .stack {
+      gap: var(--space-5);
+    }
+  }
+</style>
