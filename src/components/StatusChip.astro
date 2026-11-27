@@ -1,0 +1,37 @@
+---
+/** "Open to work" chip (Figma "Status chip" 2007:384). Shown while site.openToWork is true. */
+import { site } from '../config/site'
+---
+
+{
+  site.openToWork && (
+    <p class="status-chip">
+      <span class="dot" aria-hidden="true" />
+      {site.openToWorkLabel}
+    </p>
+  )
+}
+
+<style>
+  .status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 7px 14px 7px 12px;
+    border: 1px solid rgb(74 222 128 / 0.35);
+    border-radius: var(--radius-full);
+    background: rgb(74 222 128 / 0.1);
+    color: var(--text-primary);
+    font: 500 13px/18px var(--font-body);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: var(--status-available);
+    box-shadow: 0 0 8px rgb(74 222 128 / 0.8);
+  }
+</style>
