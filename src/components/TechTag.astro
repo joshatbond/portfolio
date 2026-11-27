@@ -1,0 +1,20 @@
+---
+/** Tech tag (Figma "Tech tag" 2035:621). */
+interface Props {
+  wideOnly?: boolean
+}
+const { wideOnly = false } = Astro.props
+---
+
+<li class:list={['tag', 't-tag', { 'wide-only': wideOnly }]}><slot /></li>
+
+<style>
+  .tag {
+    padding: 5px 10px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-full);
+    background: rgb(243 245 247 / 0.04);
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+</style>

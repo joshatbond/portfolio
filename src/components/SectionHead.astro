@@ -1,0 +1,24 @@
+---
+/** Section label with a hairline rule to its right (e.g. "PERSONAL ———"). */
+interface Props {
+  id?: string
+}
+const { id } = Astro.props
+---
+
+<h2 class="section-head t-eyebrow" id={id}><span><slot /></span></h2>
+
+<style>
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    color: var(--text-tertiary);
+  }
+
+  .section-head::after {
+    content: '';
+    flex: 1;
+    border-top: 1px solid var(--border-subtle);
+  }
+</style>

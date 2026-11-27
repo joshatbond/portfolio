@@ -1,6 +1,15 @@
 ---
 import PageLayout from '../../layouts/PageLayout.astro'
+import Button from '../../components/Button.astro'
+import Icon from '../../components/Icon.astro'
+import Panel from '../../components/Panel.astro'
+import SectionHead from '../../components/SectionHead.astro'
+import Status from '../../components/Status.astro'
+import TagList from '../../components/TagList.astro'
 import { site } from '../../config/site'
+import { diceAugur, palomaValley, professional } from '../../data/work'
+
+const panelGlow = { x: '75%', y: '44.4%', rx: '83.3%', ry: '55.6%', alpha: 0.16 }
 ---
 
 <PageLayout
@@ -28,9 +37,114 @@ import { site } from '../../config/site'
       <p class="t-tag meta">1 live app · 1 freelance show · 3 roles</p>
     </div>
   </header>
+
+  <section class="section section--personal" aria-labelledby="personal">
+    <div class="container stack-20">
+      <SectionHead id="personal">Personal</SectionHead>
+      <Panel as="article" class="project" glow={panelGlow}>
+        <div class="story">
+          <p class="project-eyebrow">
+            <span class="t-eyebrow">{diceAugur.eyebrow}</span>
+            <Status state="live">{diceAugur.status}</Status>
+          </p>
+          <h3 class="project-title t-display-m">
+            <a href={diceAugur.href} class="title-link title-dice-augur">{diceAugur.title}</a>
+          </h3>
+          <p class="t-body-l blurb">
+            <span class="wide-only">{diceAugur.blurb}</span>
+            <span class="narrow-only">{diceAugur.blurbShort}</span>
+          </p>
+        </div>
+        <dl class="facts">
+          <div class="fact">
+            <dt class="t-eyebrow fact-label sr-only-narrow">Stack</dt>
+            <dd><TagList tags={diceAugur.stack} /></dd>
+          </div>
+          <div class="fact wide-only">
+            <dt class="t-eyebrow fact-label">{diceAugur.factLabel}</dt>
+            <dd class="t-body-m">{diceAugur.fact}</dd>
+          </div>
+        </dl>
+        <div class="actions">
+          <Button href={diceAugur.href} icon="arrow-right">Read the case study</Button>
+          <Button href={diceAugur.tour} tone="outline" icon="arrow-up-right" external>Take the tour</Button>
+        </div>
+      </Panel>
+    </div>
+  </section>
+
+  <section class="section section--freelance" aria-labelledby="freelance">
+    <div class="container stack-20">
+      <SectionHead id="freelance">Freelance</SectionHead>
+      <Panel as="article" class="project project--freelance" glow={panelGlow}>
+        <div class="story">
+          <p class="project-eyebrow">
+            <span class="t-eyebrow">{palomaValley.eyebrowShort}<span class="wide-only"> · Live event</span></span>
+            <Status state="retired">{palomaValley.status}</Status>
+          </p>
+          <h3 class="project-title t-display-m">
+            <a href={palomaValley.source} class="title-link" target="_blank" rel="noopener"
+              >{palomaValley.title}<span class="visually-hidden"> (source on GitHub, opens in a new tab)</span></a
+            >
+          </h3>
+          <p class="t-body-l blurb">
+            <span class="wide-only">{palomaValley.blurb}</span>
+            <span class="narrow-only">{palomaValley.blurbShort}</span>
+          </p>
+        </div>
+        <dl class="facts">
+          <div class="fact">
+            <dt class="t-eyebrow fact-label sr-only-narrow">Stack</dt>
+            <dd><TagList tags={palomaValley.stack} /></dd>
+          </div>
+          <div class="fact wide-only">
+            <dt class="t-eyebrow fact-label">{palomaValley.factLabel}</dt>
+            <dd class="t-body-m">{palomaValley.fact}</dd>
+          </div>
+        </dl>
+        <div class="actions">
+          <Button href={palomaValley.source} tone="outline" icon="arrow-up-right" external>Source on GitHub</Button>
+        </div>
+      </Panel>
+    </div>
+  </section>
+
+  <section class="section section--professional" aria-labelledby="professional">
+    <div class="container professional">
+      <SectionHead id="professional">Professional<span class="wide-only"> · 2020 – 2024</span></SectionHead>
+      <p class="t-body-s intro">Work for employers. These were internal products, so there’s nothing public to link to.</p>
+      <a class="resume-link t-label-s" href={site.links.resume}>
+        Full history on my resume<span class="visually-hidden"> (PDF)</span>
+        <Icon name="arrow-right" size={14} />
+      </a>
+      <ul class="index">
+        {
+          professional.map((row) => (
+            <li class="row">
+              <p class="row-meta-line t-tag narrow-only">
+                {row.company} · {row.role} · {row.years}
+              </p>
+              <div class="row-main">
+                <h3 class:list={['t-heading-l row-title', { muted: row.muted }]}>{row.title}</h3>
+                <p class="row-blurb">{row.blurb}</p>
+                {row.tags.length > 0 && <TagList tags={row.tags} class="row-tags" />}
+              </div>
+              <p class="row-meta wide-only">
+                <span class="t-label-m company">{row.company}</span>
+                <span class="t-tag">{row.role}</span>
+                <span class="t-tag">{row.years}</span>
+              </p>
+              <p class="row-note t-tag wide-only">{row.note}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
 </PageLayout>
 
 <style>
+  /* ----- Header ----- */
   .page-head {
     padding-block: 44px 36px;
   }
@@ -54,6 +168,193 @@ import { site } from '../../config/site'
     color: var(--text-tertiary-lit);
   }
 
+  /* ----- Sections ----- */
+  .section {
+    padding-block: 8px 56px;
+  }
+
+  .section--professional {
+    padding-block: 0 64px;
+  }
+
+  .stack-20 {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  /* ----- Project panels ----- */
+  .project {
+    display: grid;
+    grid-template-areas: 'story' 'facts' 'actions';
+    gap: var(--space-4);
+    padding: var(--space-6) var(--space-5);
+    border-radius: var(--radius-xl);
+  }
+
+  .story {
+    grid-area: story;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .project-eyebrow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) 14px;
+    color: var(--text-accent);
+  }
+
+  .project-title {
+    width: fit-content;
+  }
+
+  .title-link {
+    display: inline-block;
+    border-radius: var(--radius-sm);
+    transition: color 160ms ease;
+  }
+
+  .title-link:hover {
+    color: var(--text-accent);
+  }
+
+  .title-dice-augur {
+    view-transition-name: title-dice-augur;
+  }
+
+  .blurb {
+    max-width: 640px;
+    color: var(--text-secondary);
+  }
+
+  .facts {
+    grid-area: facts;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .fact {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .fact dd {
+    margin: 0;
+  }
+
+  .fact-label {
+    color: var(--text-tertiary-lit);
+  }
+
+  .actions {
+    grid-area: actions;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: var(--space-1);
+  }
+
+  /* ----- Professional ----- */
+  .professional {
+    display: grid;
+    grid-template-areas: 'head' 'intro' 'index' 'link';
+    row-gap: var(--space-3);
+  }
+
+  .professional > :global(.section-head) {
+    grid-area: head;
+  }
+
+  .intro {
+    grid-area: intro;
+    max-width: 760px;
+    color: var(--text-tertiary);
+  }
+
+  .resume-link {
+    grid-area: link;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    justify-self: start;
+    padding-top: var(--space-2);
+    border-radius: 2px;
+    color: var(--text-accent);
+  }
+
+  .resume-link:hover {
+    color: var(--pool-paint);
+  }
+
+  .index {
+    grid-area: index;
+    padding-top: var(--space-2);
+  }
+
+  .row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-block: 22px 24px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .row:last-child {
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .row-meta-line {
+    color: var(--text-secondary);
+  }
+
+  .row-main {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .row-title {
+    font-size: 24px;
+    line-height: 30px;
+    letter-spacing: -0.01em;
+  }
+
+  .row-title.muted {
+    color: var(--text-secondary);
+  }
+
+  .row-blurb {
+    max-width: 640px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 22px;
+  }
+
+  .row-tags {
+    padding-top: var(--space-1);
+  }
+
+  .row-meta {
+    flex-direction: column;
+    gap: var(--space-1);
+    padding-top: 6px;
+    color: var(--text-secondary);
+  }
+
+  .company {
+    color: var(--text-primary);
+  }
+
+  .row-note {
+    padding-top: 6px;
+    color: var(--text-tertiary);
+  }
+
   @media (min-width: 720px) {
     .page-head {
       padding-block: 88px 64px;
@@ -61,6 +362,92 @@ import { site } from '../../config/site'
 
     .stack {
       gap: var(--space-5);
+    }
+
+    .section {
+      padding-block: 8px 96px;
+    }
+
+    .section--professional {
+      padding-block: 0 112px;
+    }
+
+    .stack-20 {
+      gap: var(--space-5);
+    }
+
+    .project {
+      padding: 44px var(--space-12) var(--space-12);
+    }
+
+    .project--freelance {
+      padding-block: 36px 40px;
+    }
+
+    .story {
+      gap: 18px;
+    }
+
+    .actions {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      padding-top: var(--space-2);
+    }
+
+    .professional {
+      grid-template-columns: minmax(0, 760px) 1fr;
+      grid-template-areas: 'head head' 'intro link' 'index index';
+      column-gap: var(--space-4);
+      row-gap: var(--space-5);
+      align-items: center;
+    }
+
+    .resume-link {
+      padding-top: 0;
+    }
+
+    .index {
+      padding-top: var(--space-3);
+    }
+
+    .row-blurb {
+      font-size: 16px;
+      line-height: 26px;
+      letter-spacing: -0.002em;
+    }
+
+    .row-meta {
+      display: flex;
+    }
+  }
+
+  /* Wide enough for the 7/5 panel grid and the three-column rows. */
+  @media (min-width: 1024px) {
+    .project {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      grid-template-areas: 'story facts' 'actions facts';
+      grid-template-rows: auto 1fr;
+      column-gap: 56px;
+      row-gap: 18px;
+    }
+
+    .facts {
+      padding-top: 6px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(13.75rem, max-content) minmax(10.625rem, max-content);
+      align-items: start;
+      gap: var(--space-8);
+      padding: 30px var(--space-6);
+    }
+
+    .row-title {
+      font-size: 32px;
+      line-height: 38px;
+      letter-spacing: -0.015em;
     }
   }
 </style>

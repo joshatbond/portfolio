@@ -21,9 +21,27 @@ for (const path of paths.length ? paths : ['/']) {
     })
     await page.goto(base + path, { waitUntil: 'networkidle' })
     await page.evaluate(() => document.fonts.ready)
+    if (process.env.FULL !== '0') {
+      // Scroll through once so lazy images load, then return to the top.
+      await page.evaluate(async () => {
+        for (let y = 0; y < document.body.scrollHeight; y += innerHeight / 2) {
+          scrollTo({ top: y, behavior: 'instant' })
+          await new Promise((r) => setTimeout(r, 60))
+        }
+        scrollTo({ top: 0, behavior: 'instant' })
+      })
+      await page.waitForLoadState('networkidle')
+    }
+    if (process.env.FULL !== '0') {
+      // Chromium's fullPage capture repeats content on tall pages at 2x, so
+      // grow the viewport to the document height and take a plain shot.
+      const height = await page.evaluate(() => document.documentElement.scrollHeight)
+      await page.setViewportSize({ width: w.width, height })
+      await page.waitForLoadState('networkidle')
+    }
     await page.waitForTimeout(Number(process.env.WAIT ?? 300))
     const slug = (path === '/' ? 'home' : path.replace(/^\/|\/$/g, '').replace(/\//g, '_')) + '-' + w.name
-    await page.screenshot({ path: `${out}/${slug}.png`, fullPage: process.env.FULL !== '0' })
+    await page.screenshot({ path: `${out}/${slug}.png` })
     console.log(`${out}/${slug}.png`)
     await page.close()
   }

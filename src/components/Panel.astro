@@ -1,0 +1,58 @@
+---
+/**
+ * Raised panel lit by the pool: bg/raised with a tiled caustics layer and an
+ * optional cyan radial glow (Figma: project panels, case-study callout and
+ * closing panel). Values come from each frame's paint stack.
+ */
+import { causticsUrl } from '../lib/caustics'
+
+interface Props {
+  as?: 'div' | 'section' | 'article' | 'aside'
+  /** Caustics tile size in px (Figma image scale × 1024). */
+  tile?: number
+  /** Caustics opacity. */
+  opacity?: number
+  /** Radial glow: centre and radii as percentages of the panel, plus alpha. */
+  glow?: { x: string; y: string; rx: string; ry: string; alpha: number }
+  class?: string
+  [key: string]: unknown
+}
+
+const { as: Tag = 'div', tile = 410, opacity = 0.06, glow, class: className, ...rest } = Astro.props
+const style = [
+  `--caustics: url(${await causticsUrl()})`,
+  `--tile: ${tile}px`,
+  `--caustics-opacity: ${opacity}`,
+  glow
+    ? `--panel-glow: radial-gradient(${glow.rx} ${glow.ry} at ${glow.x} ${glow.y}, rgb(6 182 212 / ${glow.alpha}), rgb(6 182 212 / 0))`
+    : '',
+]
+  .filter(Boolean)
+  .join(';')
+---
+
+<Tag class:list={['panel', className]} style={style} {...rest}>
+  <slot />
+</Tag>
+
+<style>
+  .panel {
+    --panel-glow: none;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+    background: var(--panel-glow), var(--bg-raised);
+  }
+
+  .panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--caustics) 0 0 / var(--tile) var(--tile) repeat;
+    opacity: var(--caustics-opacity);
+    mix-blend-mode: screen;
+    pointer-events: none;
+  }
+</style>

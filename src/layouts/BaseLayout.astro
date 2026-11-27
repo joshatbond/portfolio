@@ -71,6 +71,15 @@ const ogImageUrl = new URL(ogImage, site.url).href
     <Font cssVariable="--font-body" preload />
     <Font cssVariable="--font-mono" preload />
     <slot name="head" />
+    <script is:inline>
+      // The nav rim holds still between pages (view-transition-name: rim). If
+      // it has scrolled out of view, let it fade with the page instead of
+      // sliding in from above.
+      addEventListener('pageswap', (event) => {
+        const rim = document.querySelector('.rim')
+        if (event.viewTransition && rim && rim.getBoundingClientRect().bottom < 0) rim.style.viewTransitionName = 'none'
+      })
+    </script>
   </head>
   <body class={bodyClass}>
     <slot />

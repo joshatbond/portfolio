@@ -14,7 +14,8 @@
     "check:nda": "node scripts/check-nda.mjs",
     "check:contrast": "node scripts/check-contrast.mjs",
     "screenshot": "node scripts/screenshot.mjs",
-    "astro": "astro"
+    "astro": "astro",
+    "check:a11y": "node scripts/check-a11y.mjs"
   },
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",
@@ -24,6 +25,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
+    "@axe-core/playwright": "^4.14.1",
     "playwright": "1.56.1",
     "sharp": "^0.35.5",
     "typescript": "^6.0.3"
