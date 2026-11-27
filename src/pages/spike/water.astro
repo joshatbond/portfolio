@@ -1,0 +1,118 @@
+---
+// SPIKE (throwaway): the homepage composition over the water look test.
+import PoolLayout from '../../layouts/PoolLayout.astro'
+import Button from '../../components/Button.astro'
+import { causticsUrl } from '../../lib/caustics'
+import { site } from '../../config/site'
+
+const [first, ...rest] = site.name.split(' ')
+const caustics = await causticsUrl()
+---
+
+<PoolLayout status hint index={false} title="Water spike">
+  <div slot="scene" class="pool-scene" data-caustics={caustics}></div>
+  <div class="abyss">
+    <h1 class="name"><span>{first}</span>{' '}<span>{rest.join(' ')}</span></h1>
+    <p class="role">
+      <span class="wide-only">{site.title}</span>
+      <span class="narrow-only">{site.titleShort}</span>
+    </p>
+  </div>
+  <div class="pills">
+    <Button href={site.links.resume} size="pill" icon="arrow-right" label="Resume (PDF)">Resume</Button>
+    <Button href="/projects" size="pill" tone="outline" icon="arrow-right">Projects</Button>
+  </div>
+</PoolLayout>
+
+<script>
+  // Load the scene only where it can run, after first paint.
+  const el = document.querySelector<HTMLElement>('.pool-scene')
+  const gl = document.createElement('canvas').getContext('webgl2')
+  if (el && gl) {
+    await document.fonts.ready
+    const { mountWater } = await import('../../scene/spike/water')
+    mountWater(el, { caustics: el.dataset.caustics! })
+  }
+</script>
+
+<style is:global>
+  .pool-scene {
+    position: absolute;
+    inset: 0;
+    grid-area: 1 / 1;
+    opacity: 0;
+    transition: opacity 600ms ease;
+  }
+
+  [data-scene='ready'] .pool-scene {
+    opacity: 1;
+  }
+
+  /* Once the scene draws the name in the water, the DOM copy stays for
+     screen readers and selection but stops painting. */
+  html[data-scene='ready'] .abyss,
+  html[data-scene='ready'] .abyss .name,
+  html[data-scene='ready'] .abyss .role {
+    color: transparent;
+    text-shadow: none;
+  }
+</style>
+
+<style>
+  .abyss {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+    color: color-mix(in srgb, var(--pool-paint) 56%, var(--pool-shallow));
+    transition: color 600ms ease;
+  }
+
+  .name {
+    display: flex;
+    flex-direction: column;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 55px;
+    line-height: 51px;
+    letter-spacing: -0.035em;
+    text-shadow:
+      0 0 23px rgb(6 182 212 / 0.55),
+      0 0 5px rgb(34 211 238 / 0.25);
+  }
+
+  .role {
+    font: 500 13.5px/18px var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-shadow: 0 0 11px rgb(6 182 212 / 0.45);
+  }
+
+  .pills {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 104px;
+  }
+
+  @media (min-width: 720px) {
+    .name {
+      flex-direction: row;
+      gap: 0.25em;
+      font-size: 75px;
+      line-height: 72px;
+    }
+
+    .role {
+      font-size: 16px;
+      line-height: 20px;
+      letter-spacing: 0.14em;
+    }
+
+    .pills {
+      gap: var(--space-6);
+      margin-top: 106px;
+    }
+  }
+</style>

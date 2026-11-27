@@ -21,12 +21,15 @@
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",
     "@fontsource-variable/geist": "^5.3.0",
     "@fontsource-variable/geist-mono": "^5.3.0",
-    "astro": "^7.4.13"
+    "astro": "^7.4.13",
+    "three": "^0.187.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
     "@axe-core/playwright": "^4.14.1",
+    "@types/three": "^0.187.0",
     "playwright": "1.56.1",
+    "rollup-plugin-three-minify": "3.0.2",
     "sharp": "^0.35.5",
     "typescript": "^6.0.3"
   }
