@@ -1,6 +1,5 @@
 // @ts-check
 import { defineConfig, fontProviders } from 'astro/config'
-import react from '@astrojs/react'
 import { site } from './src/config/site.ts'
 
 /** @param {string} pkg @param {string} file */
@@ -13,7 +12,6 @@ export default defineConfig({
   // `projects.html` style files so static hosts serve them without a redirect.
   trailingSlash: 'never',
   build: { format: 'file' },
-  integrations: [react()],
   fonts: [
     {
       provider: fontProviders.local(),

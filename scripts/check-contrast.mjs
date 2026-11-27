@@ -107,6 +107,11 @@ for (const width of WIDTHS) {
     await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important; animation: none !important; }' })
 
     // ----- 1. Link and button labels, per state -----
+    // Glyphs are hidden with a fill-colour override, so inline styles,
+    // currentColor icons and borders stay exactly as rendered.
+    await page.addStyleTag({
+      content: '[data-cc-hide], [data-cc-hide] * { -webkit-text-fill-color: transparent !important; text-shadow: none !important; }',
+    })
     const labelCount = await page.evaluate(() => {
       window.__labels = [...document.querySelectorAll('a, button')].filter((el) => el.innerText.trim())
       return window.__labels.length
@@ -115,49 +120,68 @@ for (const width of WIDTHS) {
       for (const state of ['default', 'hover', 'focus']) {
         await page.mouse.move(0, 0)
         await page.evaluate(() => document.activeElement instanceof HTMLElement && document.activeElement.blur())
-        // Bring the element into view, then put it in the state.
         const target = await page.evaluateHandle((k) => window.__labels[k], i)
         await target.evaluate((n) => n.scrollIntoView({ block: 'center', inline: 'nearest' }))
+        const name = await target.evaluate((n) => n.innerText.trim().split('\n')[0].slice(0, 40))
         if (state === 'hover') {
-          const b = await target.boundingBox()
-          if (!b) continue
-          await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2)
+          // Hover a point that hit-tests to the label itself (a multi-line
+          // link's box centre can fall outside it).
+          const point = await target.evaluate((n) => {
+            for (const rect of n.getClientRects()) {
+              const x = rect.left + rect.width / 2
+              const y = rect.top + rect.height / 2
+              const hit = document.elementFromPoint(x, y)
+              if (hit && (hit === n || n.contains(hit))) return { x, y }
+            }
+            return null
+          })
+          if (!point) continue // covered or off-screen: not hoverable here
+          await page.mouse.move(point.x, point.y)
         }
         if (state === 'focus') {
           await target.evaluate((n) => n.focus({ focusVisible: true }))
-          // Keyboard focus (:focus-visible) for elements focused from script.
           await page.keyboard.press('Shift')
         }
         await page.waitForTimeout(30)
-        const info = await target.evaluate((n) => {
-          // The text inside the label (minus visually-hidden helper text).
-          const rects = []
+        const active = await target.evaluate((n, st) => (st === 'hover' ? n.matches(':hover') : st === 'focus' ? n.matches(':focus-visible') : true), state)
+        if (!active) {
+          failures++
+          console.log(`FAIL could not put "${name}" in its ${state} state (${width}px ${path})`)
+          continue
+        }
+        // Each text run with its own colour, clipped to the element's box (a
+        // glyph box can be taller than the line, and the focus ring outside
+        // the element isn't behind the label).
+        const runs = await target.evaluate((n) => {
+          const own = n.getBoundingClientRect()
+          const out = []
           const walker = document.createTreeWalker(n, NodeFilter.SHOW_TEXT)
           for (let t = walker.nextNode(); t; t = walker.nextNode()) {
             if (!t.textContent.trim() || t.parentElement.closest('.visually-hidden')) continue
-            const r = document.createRange()
-            r.selectNodeContents(t)
-            for (const rect of r.getClientRects()) if (rect.width > 1 && rect.height > 1) rects.push(rect)
+            const color = getComputedStyle(t.parentElement).color
+            const range = document.createRange()
+            range.selectNodeContents(t)
+            for (const r of range.getClientRects()) {
+              const x = Math.max(own.left, r.left)
+              const y = Math.max(own.top, r.top)
+              const w = Math.min(own.right, r.right) - x
+              const h = Math.min(own.bottom, r.bottom) - y
+              if (w < 1 || h < 1) continue
+              const inView = x >= 0 && y >= 0 && x + w <= innerWidth && y + h <= innerHeight
+              out.push({ color, box: { x, y, w, h }, inView })
+            }
           }
-          if (!rects.length) return null
-          const x = Math.min(...rects.map((r) => r.left))
-          const y = Math.min(...rects.map((r) => r.top))
-          const box = { x, y, w: Math.max(...rects.map((r) => r.right)) - x, h: Math.max(...rects.map((r) => r.bottom)) - y }
-          const inView = box.x >= 0 && box.y >= 0 && box.x + box.w <= innerWidth && box.y + box.h <= innerHeight
-          const labelEl = n.querySelector('.btn__label') ?? n
-          return { box, inView, color: getComputedStyle(labelEl).color, name: n.innerText.trim().split('\n')[0].slice(0, 40) }
+          return out
         })
+        const visible = runs.filter((r) => r.inView)
         // Not visible in this state (e.g. the skip link before it's focused).
-        if (!info || !info.inView) continue
-        await target.evaluate((n) => n.style.setProperty('color', 'transparent', 'important'))
-        await target.evaluate((n) => n.querySelectorAll('*').forEach((c) => c.style.setProperty('color', 'transparent', 'important')))
+        if (!visible.length) continue
+        await target.evaluate((n) => n.setAttribute('data-cc-hide', ''))
         const png = await page.screenshot()
-        await target.evaluate((n) => {
-          n.style.removeProperty('color')
-          n.querySelectorAll('*').forEach((c) => c.style.removeProperty('color'))
-        })
-        const { min } = measure(await rawRegion(png, info.box), parseColor(info.color))
-        report(min >= LABEL_MIN, min, LABEL_MIN, `label ${width}px ${path}  "${info.name}" [${state}]`)
+        await target.evaluate((n) => n.removeAttribute('data-cc-hide'))
+        let worst = Infinity
+        for (const run of visible) worst = Math.min(worst, measure(await rawRegion(png, run.box), parseColor(run.color)).min)
+        report(worst >= LABEL_MIN, worst, LABEL_MIN, `label ${width}px ${path}  "${name}" [${state}]`)
       }
     }
 
@@ -177,7 +201,7 @@ for (const width of WIDTHS) {
       return window.__texts.map((node) => ({ color: getComputedStyle(node.parentElement).color, text: node.textContent.trim().slice(0, 40) }))
     })
     const hide = await page.addStyleTag({
-      content: '*, *::before, *::after { color: transparent !important; -webkit-text-fill-color: transparent !important; text-shadow: none !important; }',
+      content: '*, *::before, *::after { -webkit-text-fill-color: transparent !important; text-shadow: none !important; }',
     })
     const docHeight = await page.evaluate(() => document.documentElement.scrollHeight)
     const done = new Set()
