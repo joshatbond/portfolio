@@ -1,18 +1,18 @@
 // Contrast checks on rendered pixels (brief §4).
 //
-// 1. Button and pill labels (`.btn__label`) must reach 7:1 in the default,
-//    hover and focus states. The label is hidden, the pixels behind it are
-//    captured, and the worst pixel in the label's box must pass.
-// 2. All other text: text inside a link or button is a label too and must
-//    reach 7:1 against its worst background pixel. Everything else must reach
-//    the floor, text/tertiary on pool/deep (4.57:1), against its
-//    95th-percentile worst pixel, so one bright caustic speck doesn't fail a
-//    paragraph. All text is hidden and the page captured once per width.
+// 1. Labels: the text of every link and button (nav, footer, buttons, pills,
+//    the skip link) must reach 7:1 against its worst background pixel in the
+//    default, hover and keyboard-focus states it's visible in. The label's
+//    colour is hidden, the pixels behind it captured, and every pixel tested.
+// 2. Floor: all other text must reach text/tertiary on pool/deep (4.57:1)
+//    against its 95th-percentile worst pixel, so one bright caustic speck
+//    doesn't fail a paragraph. All text is hidden and the page is captured in
+//    overlapping viewport-sized windows, without changing the layout.
 //
 // Pages are checked at the design widths and either side of each breakpoint.
 //
 // usage: node scripts/check-contrast.mjs [baseUrl] [path ...]
-//   default: http://localhost:4321 and every page in dist/
+//   default: http://localhost:4321 and every page in dist/ (build first)
 import { chromium } from 'playwright'
 import sharp from 'sharp'
 import { existsSync, readdirSync, statSync } from 'node:fs'
@@ -20,6 +20,7 @@ import { join, relative } from 'node:path'
 
 const [base = 'http://localhost:4321', ...argPaths] = process.argv.slice(2)
 const WIDTHS = [1440, 1024, 720, 390, 320]
+const VIEWPORT_H = 900
 const LABEL_MIN = 7
 
 const lin = (c) => {
@@ -48,11 +49,14 @@ function builtPaths() {
     }
   }
   if (existsSync('dist')) walk('dist')
-  return pages.length ? pages.sort() : ['/']
+  return pages.sort()
 }
 const paths = argPaths.length ? argPaths : builtPaths()
+if (paths.length === 0) {
+  console.error('No pages to check: run `pnpm build` first, or pass routes explicitly.')
+  process.exit(1)
+}
 
-const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] })
 let failures = 0
 let checked = 0
 const report = (ok, value, min, where) => {
@@ -61,10 +65,9 @@ const report = (ok, value, min, where) => {
   if (!ok || process.env.VERBOSE) console.log(`${ok ? 'ok  ' : 'FAIL'} ${value.toFixed(2)}:1 (min ${min})  ${where}`)
 }
 
-/** Worst-case ratios of `color` against the pixels of `png`. */
-async function measure(png, color) {
-  const { data, info } = await sharp(png).removeAlpha().raw().toBuffer({ resolveWithObject: true })
-  const n = info.width * info.height
+/** Worst-case ratios of `color` against the pixels of a raw RGB region. */
+function measure({ data, width: w, height: h }, color) {
+  const n = w * h
   const ratios = new Float64Array(n)
   const a = color[3]
   for (let p = 0; p < n; p++) {
@@ -76,8 +79,20 @@ async function measure(png, color) {
   return { min: ratios[0], p5: ratios[Math.floor(n * 0.05)] }
 }
 
+async function rawRegion(png, box) {
+  const img = sharp(png)
+  const { width, height } = await img.metadata()
+  const left = Math.max(0, Math.floor(box.x))
+  const top = Math.max(0, Math.floor(box.y))
+  const w = Math.max(1, Math.min(Math.ceil(box.x + box.w) - left, width - left))
+  const h = Math.max(1, Math.min(Math.ceil(box.y + box.h) - top, height - top))
+  const { data, info } = await img.extract({ left, top, width: w, height: h }).removeAlpha().raw().toBuffer({ resolveWithObject: true })
+  return { data, width: info.width, height: info.height }
+}
+
+const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] })
 for (const width of WIDTHS) {
-  const context = await browser.newContext({ viewport: { width, height: 900 }, deviceScaleFactor: 1, reducedMotion: 'reduce' })
+  const context = await browser.newContext({ viewport: { width, height: VIEWPORT_H }, deviceScaleFactor: 1, reducedMotion: 'reduce' })
   const page = await context.newPage()
   for (const path of paths) {
     const res = await page.goto(base + path, { waitUntil: 'networkidle' })
@@ -88,83 +103,108 @@ for (const width of WIDTHS) {
       continue
     }
     await page.evaluate(() => document.fonts.ready)
+    // States should settle at once, so nothing is measured mid-transition.
+    await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important; animation: none !important; }' })
 
-    // ----- 1. Button and pill labels, per state -----
-    const labels = page.locator('.btn__label')
-    for (let i = 0; i < (await labels.count()); i++) {
-      const label = labels.nth(i)
-      if (!(await label.isVisible())) continue
-      const btn = label.locator('xpath=ancestor::*[contains(concat(" ", @class, " "), " btn ")][1]')
-      await btn.scrollIntoViewIfNeeded()
+    // ----- 1. Link and button labels, per state -----
+    const labelCount = await page.evaluate(() => {
+      window.__labels = [...document.querySelectorAll('a, button')].filter((el) => el.innerText.trim())
+      return window.__labels.length
+    })
+    for (let i = 0; i < labelCount; i++) {
       for (const state of ['default', 'hover', 'focus']) {
         await page.mouse.move(0, 0)
         await page.evaluate(() => document.activeElement instanceof HTMLElement && document.activeElement.blur())
-        if (state === 'hover') await btn.hover()
-        if (state === 'focus') await btn.focus()
-        await page.waitForTimeout(260)
-        const box = await label.boundingBox()
-        if (!box) continue
-        const color = parseColor(await label.evaluate((n) => getComputedStyle(n).color))
-        const name = (await label.innerText()).trim()
-        await label.evaluate((n) => n.style.setProperty('color', 'transparent', 'important'))
-        const png = await page.screenshot({ clip: { x: Math.floor(box.x), y: Math.floor(box.y), width: Math.ceil(box.width), height: Math.ceil(box.height) } })
-        await label.evaluate((n) => n.style.removeProperty('color'))
-        const { min } = await measure(png, color)
-        report(min >= LABEL_MIN, min, LABEL_MIN, `button ${width}px ${path}  "${name}" [${state}]`)
+        // Bring the element into view, then put it in the state.
+        const target = await page.evaluateHandle((k) => window.__labels[k], i)
+        await target.evaluate((n) => n.scrollIntoView({ block: 'center', inline: 'nearest' }))
+        if (state === 'hover') {
+          const b = await target.boundingBox()
+          if (!b) continue
+          await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2)
+        }
+        if (state === 'focus') {
+          await target.evaluate((n) => n.focus({ focusVisible: true }))
+          // Keyboard focus (:focus-visible) for elements focused from script.
+          await page.keyboard.press('Shift')
+        }
+        await page.waitForTimeout(30)
+        const info = await target.evaluate((n) => {
+          // The text inside the label (minus visually-hidden helper text).
+          const rects = []
+          const walker = document.createTreeWalker(n, NodeFilter.SHOW_TEXT)
+          for (let t = walker.nextNode(); t; t = walker.nextNode()) {
+            if (!t.textContent.trim() || t.parentElement.closest('.visually-hidden')) continue
+            const r = document.createRange()
+            r.selectNodeContents(t)
+            for (const rect of r.getClientRects()) if (rect.width > 1 && rect.height > 1) rects.push(rect)
+          }
+          if (!rects.length) return null
+          const x = Math.min(...rects.map((r) => r.left))
+          const y = Math.min(...rects.map((r) => r.top))
+          const box = { x, y, w: Math.max(...rects.map((r) => r.right)) - x, h: Math.max(...rects.map((r) => r.bottom)) - y }
+          const inView = box.x >= 0 && box.y >= 0 && box.x + box.w <= innerWidth && box.y + box.h <= innerHeight
+          const labelEl = n.querySelector('.btn__label') ?? n
+          return { box, inView, color: getComputedStyle(labelEl).color, name: n.innerText.trim().split('\n')[0].slice(0, 40) }
+        })
+        // Not visible in this state (e.g. the skip link before it's focused).
+        if (!info || !info.inView) continue
+        await target.evaluate((n) => n.style.setProperty('color', 'transparent', 'important'))
+        await target.evaluate((n) => n.querySelectorAll('*').forEach((c) => c.style.setProperty('color', 'transparent', 'important')))
+        const png = await page.screenshot()
+        await target.evaluate((n) => {
+          n.style.removeProperty('color')
+          n.querySelectorAll('*').forEach((c) => c.style.removeProperty('color'))
+        })
+        const { min } = measure(await rawRegion(png, info.box), parseColor(info.color))
+        report(min >= LABEL_MIN, min, LABEL_MIN, `label ${width}px ${path}  "${info.name}" [${state}]`)
       }
     }
 
-    // ----- 2. All other text -----
+    // ----- 2. All other text, window by window -----
     await page.mouse.move(0, 0)
     await page.evaluate(() => document.activeElement instanceof HTMLElement && document.activeElement.blur())
-    const height = await page.evaluate(() => document.documentElement.scrollHeight)
-    await page.setViewportSize({ width, height })
-    await page.waitForTimeout(200)
-    const texts = await page.evaluate(() => {
-      const out = []
+    const colors = await page.evaluate(() => {
+      window.__texts = []
       const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
       for (let node = walker.nextNode(); node; node = walker.nextNode()) {
         const el = node.parentElement
-        if (!el || !node.textContent.trim() || el.closest('.btn, .skip-link, script, style, .visually-hidden')) continue
+        if (!el || !node.textContent.trim() || el.closest('a, button, script, style, .visually-hidden')) continue
         const style = getComputedStyle(el)
         if (style.visibility === 'hidden' || Number(style.opacity) === 0) continue
-        const range = document.createRange()
-        range.selectNodeContents(node)
-        for (const r of range.getClientRects()) {
-          if (r.width < 2 || r.height < 2) continue
-          out.push({
-            text: node.textContent.trim().slice(0, 40),
-            color: style.color,
-            label: Boolean(el.closest('a, button')),
-            x: r.x + scrollX,
-            y: r.y + scrollY,
-            w: r.width,
-            h: r.height,
-          })
-        }
+        window.__texts.push(node)
       }
-      return out
+      return window.__texts.map((node) => ({ color: getComputedStyle(node.parentElement).color, text: node.textContent.trim().slice(0, 40) }))
     })
     const hide = await page.addStyleTag({
       content: '*, *::before, *::after { color: transparent !important; -webkit-text-fill-color: transparent !important; text-shadow: none !important; }',
     })
-    await page.waitForTimeout(100)
-    const full = await page.screenshot()
-    await hide.evaluate((n) => n.remove())
-    for (const t of texts) {
-      // Off-page boxes (e.g. carousel cards scrolled out of view) can't be measured.
-      if (t.x < 0 || t.y < 0 || t.x + 1 > width || t.y + 1 > height) continue
-      const left = Math.floor(t.x)
-      const top = Math.floor(t.y)
-      const crop = await sharp(full)
-        .extract({ left, top, width: Math.max(1, Math.min(Math.ceil(t.w), width - left)), height: Math.max(1, Math.min(Math.ceil(t.h), height - top)) })
-        .png()
-        .toBuffer()
-      const { min, p5 } = await measure(crop, parseColor(t.color))
-      if (t.label) report(min >= LABEL_MIN, min, LABEL_MIN, `link   ${width}px ${path}  "${t.text}"`)
-      else report(p5 >= FLOOR_MIN, p5, FLOOR_MIN, `text   ${width}px ${path}  "${t.text}"`)
+    const docHeight = await page.evaluate(() => document.documentElement.scrollHeight)
+    const done = new Set()
+    for (let y = 0; ; y += VIEWPORT_H - 200) {
+      await page.evaluate((top) => scrollTo({ top, behavior: 'instant' }), y)
+      await page.waitForTimeout(30)
+      const boxes = await page.evaluate(() =>
+        window.__texts.map((node) => {
+          const r = document.createRange()
+          r.selectNodeContents(node)
+          return [...r.getClientRects()].filter((b) => b.width > 1 && b.height > 1).map((b) => ({ x: b.x, y: b.y, w: b.width, h: b.height }))
+        }),
+      )
+      const png = await page.screenshot()
+      for (let k = 0; k < boxes.length; k++) {
+        for (let j = 0; j < boxes[k].length; j++) {
+          const id = `${k}:${j}`
+          const b = boxes[k][j]
+          if (done.has(id) || b.x < 0 || b.y < 0 || b.x + b.w > width || b.y + b.h > VIEWPORT_H) continue
+          done.add(id)
+          const { p5 } = measure(await rawRegion(png, b), parseColor(colors[k].color))
+          report(p5 >= FLOOR_MIN, p5, FLOOR_MIN, `text  ${width}px ${path}  "${colors[k].text}"`)
+        }
+      }
+      if (y + VIEWPORT_H >= docHeight) break
     }
-    await page.setViewportSize({ width, height: 900 })
+    await hide.evaluate((n) => n.remove())
   }
   await context.close()
 }

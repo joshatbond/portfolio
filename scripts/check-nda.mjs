@@ -31,10 +31,8 @@ const source = `(?<![\\p{L}\\p{N}])(?:${terms.map(escape).join('|')})(?![\\p{L}\
 const pattern = new RegExp(source, 'iu')
 // Also match slugs and file names, where words are joined by - _ . or /.
 const test = { test: (s) => pattern.test(s) || pattern.test(s.replace(/[-_./]+/g, ' ')) }
-const redact = (s) => {
-  if (!test.test(s)) return s
-  return pattern.test(s) ? s.replace(new RegExp(source, 'giu'), '[redacted]') : '[path redacted]'
-}
+// Paths are only ever printed whole or not at all.
+const redact = (s) => (test.test(s) ? '[path redacted]' : s)
 
 function walk(path, out) {
   if (!existsSync(path)) return out
