@@ -31,13 +31,13 @@ export const Fish = {
   /** Since the scene started, and how long it waits before swimming in. */
   age: f32(),
   delay: f32(),
-  /**
-   * Its spot in the still (px at the surface): it swims in toward it, at
-   * the depth `goalZ`, then keeps to the water around it.
-   */
+  /** Where it swims in toward when the scene starts (px at the surface), at the depth `goalZ`. */
   homeX: f32(),
   homeY: f32(),
   goalZ: f32(),
+  /** Its school (School, by id; 0: on its own), and while on its own, until it looks for company (negative) or since. */
+  school: new Uint8Array(MAX),
+  lonely: f32(),
   /**
    * While it swims in: where it came from (systems/chips.ts Role), and how
    * many times faster than its pace.
@@ -48,6 +48,21 @@ export const Fish = {
   flee: f32(),
   /** Until a fish near the surface next ripples it. */
   wake: f32(),
+}
+
+/** A small school of fish (systems/chips.ts), by its id. */
+export const MAX_SCHOOLS = 64
+const schoolF32 = () => new Float32Array(MAX_SCHOOLS)
+export const School = {
+  /** The depth it's making for, and until it picks another. */
+  depth: schoolF32(),
+  redepth: schoolF32(),
+  /** Until it next kicks (negative), its fish one after another, a moment apart. */
+  beat: schoolF32(),
+  /** Where it's heading for across the window (share of its width and height, from the middle), and until it picks somewhere else. */
+  goalU: schoolF32(),
+  goalV: schoolF32(),
+  regoal: schoolF32(),
 }
 
 /** A bubble from a startled fish: its age and lifetime. No more than MAX_BUBBLES at once. */
