@@ -8,6 +8,11 @@
  * CSS light sits a pre-rendered still of the scene itself
  * (scripts/render-pool-still.mjs), which is all that shows where the scene
  * can't run: no WebGL, Save-Data, low-power devices.
+ *
+ * On the homepage the still shows the stack chips, except where the scene
+ * will run with motion (html[data-scene], set in the page's <head>): there
+ * the chips swim in from off camera as the scene starts, so it paints empty
+ * water first.
  */
 import { getImage } from 'astro:assets'
 import desktopChips from '../assets/pool/still-desktop.webp'
@@ -21,9 +26,12 @@ interface Props {
 }
 
 const { variant = 'chips' } = Astro.props
-const [desktop, mobile] = await Promise.all(
-  (variant === 'chips' ? [desktopChips, mobileChips] : [desktopEmpty, mobileEmpty]).map((src) => getImage({ src, format: 'webp' })),
+const stills = { chips: [desktopChips, mobileChips], empty: [desktopEmpty, mobileEmpty] }
+const [desktop, mobile, emptyDesktop, emptyMobile] = await Promise.all(
+  [...stills[variant], ...stills.empty].map((src) => getImage({ src, format: 'webp' })),
 )
+// Backgrounds rather than an <img>, so only the still that shows is fetched.
+const still = `--still: url(${desktop.src}); --still-mobile: url(${mobile.src}); --still-empty: url(${emptyDesktop.src}); --still-empty-mobile: url(${emptyMobile.src})`
 
 // Motes drifting in the mid-water: a fixed scatter.
 let seed = 20261127
@@ -37,23 +45,21 @@ const motes = Array.from({ length: 36 }, () => {
 }).join(',')
 ---
 
-<div class="tub" style={`--motes: ${motes}`} aria-hidden="true">
+<div class="tub" style={`--motes: ${motes}; ${still}`} aria-hidden="true">
   <div class="light"></div>
-  <picture class="render">
-    <source media="(max-width: 719.98px)" srcset={mobile.src} />
-    <img src={desktop.src} alt="" decoding="async" />
-  </picture>
+  <div class="render"></div>
   <div class="motes"></div>
   <slot />
   <div class="vignette"></div>
 </div>
 
 <style>
+  /* The deep is the page's own colour (on <html>), so the light can sit
+     below the stacking order (see .light). */
   .tub {
     position: absolute;
     inset: 0;
     overflow: hidden;
-    background: var(--pool-deep);
   }
 
   .tub > * {
@@ -65,14 +71,28 @@ const motes = Array.from({ length: 36 }, () => {
   /* The lamp's light in the inky water: one soft glow, a quarter of the way
      up from the bottom, where the scene's lamp sits behind the camera
      (src/scene/config.ts). */
+  /* It sits under everything, so the pages can thicken the water around
+     their deep text (PoolLayout's pocket) between it and the still. */
   .light {
+    z-index: -2;
     background: radial-gradient(60vmax 48vmax at 50% 75%, rgb(6 182 212 / 0.22), rgb(6 182 212 / 0.06) 50%, transparent);
   }
 
-  .render img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  .render {
+    background: center / cover no-repeat var(--still);
+  }
+
+  @media (max-width: 719.98px) {
+    .render {
+      background-image: var(--still-mobile);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(:root[data-scene]) .render {
+      --still: var(--still-empty);
+      --still-mobile: var(--still-empty-mobile);
+    }
   }
 
   .motes {

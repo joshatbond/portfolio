@@ -14,6 +14,11 @@
 // (whose own name and title check-scene-text.mjs measures) and with its
 // fallback still, as devices that can't run the scene see it.
 //
+// The pool pages (the homepage's fallback and the 404) are checked once more
+// with their still (.render) hidden: their CSS paint alone, as it shows
+// before the still decodes or with images off. That pass adds a tall tablet
+// window, 768×1024, where the lamp's glow sits right behind the title.
+//
 // usage: node scripts/check-contrast.mjs [baseUrl] [path ...]
 //   default: http://localhost:4321 and every page in dist/ (build first)
 import { chromium } from 'playwright'
@@ -24,6 +29,9 @@ import { join, relative } from 'node:path'
 const [base = 'http://localhost:4321', ...argPaths] = process.argv.slice(2)
 const WIDTHS = [1440, 1024, 720, 390, 320]
 const VIEWPORT_H = 900
+// The design widths, and (for the CSS-only pass alone) a tall tablet window.
+const SIZES = [...WIDTHS.map((width) => ({ width, height: VIEWPORT_H })), { width: 768, height: 1024, cssOnly: true }]
+const POOL_PAGES = ['/?scene=off', '/404']
 const LABEL_MIN = 7
 
 const lin = (c) => {
@@ -96,10 +104,16 @@ async function rawRegion(png, box) {
 }
 
 const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] })
-for (const width of WIDTHS) {
-  const context = await browser.newContext({ viewport: { width, height: VIEWPORT_H }, deviceScaleFactor: 1, reducedMotion: 'reduce' })
+for (const size of SIZES) {
+  const { width, height } = size
+  const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, reducedMotion: 'reduce' })
   const page = await context.newPage()
-  for (const path of paths) {
+  const runs = [
+    ...(size.cssOnly ? [] : paths.map((path) => ({ path, cssOnly: false }))),
+    ...paths.filter((path) => POOL_PAGES.includes(path)).map((path) => ({ path, cssOnly: true })),
+  ]
+  for (const { path, cssOnly } of runs) {
+    const where = `${height === VIEWPORT_H ? `${width}px` : `${width}×${height}`} ${path}${cssOnly ? ' (CSS only)' : ''}`
     const res = await page.goto(base + path, { waitUntil: 'networkidle' })
     const expected = path === '/404' ? [200, 404] : [200]
     if (!res || !expected.includes(res.status())) {
@@ -110,6 +124,7 @@ for (const width of WIDTHS) {
     await page.evaluate(() => document.fonts.ready)
     // States should settle at once, so nothing is measured mid-transition.
     await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important; animation: none !important; }' })
+    if (cssOnly) await page.addStyleTag({ content: '.render { visibility: hidden !important; }' })
 
     // ----- 1. Link and button labels, per state -----
     // Glyphs are hidden with a fill-colour override, so inline styles,
@@ -154,7 +169,7 @@ for (const width of WIDTHS) {
         const active = await target.evaluate((n, st) => (st === 'hover' ? n.matches(':hover') : st === 'focus' ? n.matches(':focus-visible') : true), state)
         if (!active) {
           failures++
-          console.log(`FAIL could not put "${name}" in its ${state} state (${width}px ${path})`)
+          console.log(`FAIL could not put "${name}" in its ${state} state (${where})`)
           continue
         }
         // Each text run with its own colour, clipped to the element's box (a
@@ -189,7 +204,7 @@ for (const width of WIDTHS) {
         await target.evaluate((n) => n.removeAttribute('data-cc-hide'))
         let worst = Infinity
         for (const run of visible) worst = Math.min(worst, measure(await rawRegion(png, run.box), parseColor(run.color)).min)
-        report(worst >= LABEL_MIN, worst, LABEL_MIN, `label ${width}px ${path}  "${name}" [${state}]`)
+        report(worst >= LABEL_MIN, worst, LABEL_MIN, `label ${where}  "${name}" [${state}]`)
       }
     }
 
@@ -215,7 +230,7 @@ for (const width of WIDTHS) {
     })
     const docHeight = await page.evaluate(() => document.documentElement.scrollHeight)
     const done = new Set()
-    for (let y = 0; ; y += VIEWPORT_H - 200) {
+    for (let y = 0; ; y += height - 200) {
       await page.evaluate((top) => scrollTo({ top, behavior: 'instant' }), y)
       await page.waitForTimeout(30)
       const boxes = await page.evaluate(() =>
@@ -230,13 +245,13 @@ for (const width of WIDTHS) {
         for (let j = 0; j < boxes[k].length; j++) {
           const id = `${k}:${j}`
           const b = boxes[k][j]
-          if (done.has(id) || b.x < 0 || b.y < 0 || b.x + b.w > width || b.y + b.h > VIEWPORT_H) continue
+          if (done.has(id) || b.x < 0 || b.y < 0 || b.x + b.w > width || b.y + b.h > height) continue
           done.add(id)
           const { p5 } = measure(await rawRegion(png, b), parseColor(colors[k].color))
-          report(p5 >= FLOOR_MIN, p5, FLOOR_MIN, `text  ${width}px ${path}  "${colors[k].text}"`)
+          report(p5 >= FLOOR_MIN, p5, FLOOR_MIN, `text  ${where}  "${colors[k].text}"`)
         }
       }
-      if (y + VIEWPORT_H >= docHeight) break
+      if (y + height >= docHeight) break
     }
     await hide.evaluate((n) => n.remove())
   }
