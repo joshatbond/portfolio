@@ -10,7 +10,7 @@ export const Rotation = { x: f32(), y: f32(), z: f32() }
 
 /** A chip swimming like a fish (systems/chips.ts). Times in s, distances in px. */
 export const Fish = {
-  /** Its own pace and rhythm. */
+  /** Its own pace (px/s, for a 900 px window: systems/chips.ts swimScale) and rhythm. */
   cruise: f32(),
   phase: f32(),
   /** Where it's heading across the view (rad), and the depth it's making for. */

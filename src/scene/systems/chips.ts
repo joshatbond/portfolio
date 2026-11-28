@@ -162,7 +162,7 @@ function arrive(world: SceneWorld) {
 
   for (const f of fish) {
     const eid = addChip(world, f.key, true)
-    Fish.cruise[eid] = rand(S.cruise) * s
+    Fish.cruise[eid] = rand(S.cruise)
     Fish.phase[eid] = random() * TAU
     Fish.redepth[eid] = rand(S.redepth)
     Fish.burst[eid] = -rand(S.burst.every)
@@ -204,8 +204,8 @@ function arrive(world: SceneWorld) {
     const gk = depthScale(world, goalDepth)
     Fish.heading[eid] = Math.atan2(f.home.y * gk - y, f.home.x * gk - x)
     const boost = f.role === 'behind' ? A.behindBoost : A.boost
-    Velocity.x[eid] = Math.cos(Fish.heading[eid]) * Fish.cruise[eid] * boost
-    Velocity.y[eid] = Math.sin(Fish.heading[eid]) * Fish.cruise[eid] * boost
+    Velocity.x[eid] = Math.cos(Fish.heading[eid]) * Fish.cruise[eid] * s * boost
+    Velocity.y[eid] = Math.sin(Fish.heading[eid]) * Fish.cruise[eid] * s * boost
     Fish.boost[eid] = boost
   }
 }
@@ -293,7 +293,7 @@ function swim(world: SceneWorld, eid: number, school: number[], dt: number, s: n
   const k = depthScale(world, depth)
   const h = Fish.heading[eid]
   const ph = Fish.phase[eid]
-  const cruise = Fish.cruise[eid]
+  const cruise = Fish.cruise[eid] * s
   const fleeing = Fish.flee[eid] > 0
   const entering = Fish.entering[eid] > 0
 
