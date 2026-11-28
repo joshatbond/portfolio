@@ -98,6 +98,15 @@ export function specksSystem(): System {
       const { stroke, press } = world.input
       const reach = S.stir.radius
       const stirDepth = S.stir.depth * scale
+      // The stroke's pull, capped: a fast swipe stirs no harder than a slow one.
+      let pullX = 0
+      let pullY = 0
+      if (stroke) {
+        const speed = Math.hypot(stroke.vx, stroke.vy)
+        const cap = Math.min(1, (S.stir.max * scale) / (speed || 1))
+        pullX = stroke.vx * cap
+        pullY = stroke.vy * cap
+      }
       for (let i = 0; i < count; i++) {
         const o = i * 3
         const x = pos[o], y = pos[o + 1], z = pos[o + 2]
@@ -114,16 +123,16 @@ export function specksSystem(): System {
           if (stroke) {
             const d = Math.hypot(sx - stroke.x, sy - stroke.y)
             if (d < reach) {
-              const w = (1 - d / reach) ** 2 * near * S.stir.sweep
-              vel[o] += (stroke.vx / k - vel[o]) * w
-              vel[o + 1] += (stroke.vy / k - vel[o + 1]) * w
+              const w = 1 - Math.exp(-S.stir.rate * (1 - d / reach) ** 2 * near * dt)
+              vel[o] += (pullX / k - vel[o]) * w
+              vel[o + 1] += (pullY / k - vel[o + 1]) * w
             }
           }
           if (press) {
             const dx = sx - press.x, dy = sy - press.y
             const d = Math.hypot(dx, dy) || 1
-            if (d < reach * 1.5) {
-              const w = (1 - d / (reach * 1.5)) * near * S.stir.burst * scale
+            if (d < reach) {
+              const w = (1 - d / reach) * near * S.stir.burst * scale
               vel[o] += (dx / d) * w
               vel[o + 1] += (dy / d) * w
             }

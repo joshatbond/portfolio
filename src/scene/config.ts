@@ -119,11 +119,13 @@ export const config = {
     /** How quickly a speck takes up the water's motion (per s): its inertia. */
     drag: 1.2,
     /**
-     * Stirring: the pointer sweeps specks along within `radius` px (seen at
-     * the surface), shallow ones most (falling off over `depth` px); a press
-     * pushes them out at up to `burst` px/s.
+     * Stirring, faintly: within `radius` px of the pointer (seen at the
+     * surface), shallow specks (falling off over `depth` px) ease toward the
+     * stroke's direction at up to `max` px/s, taking it up at `rate` per s;
+     * a press nudges them out at up to `burst` px/s. The current soon takes
+     * them back.
      */
-    stir: { radius: 170, depth: 320, sweep: 0.6, burst: 180 },
+    stir: { radius: 130, depth: 160, max: 40, rate: 4, burst: 30 },
     /** Brightness in the dark, and in a lamp's full light. */
     dark: 0.06,
     lit: 5,
