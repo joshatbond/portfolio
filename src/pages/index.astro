@@ -51,7 +51,20 @@ const [first, ...rest] = site.name.split(' ')
     await document.fonts.ready
     const { mountScene } = await import('../scene')
     // Reduced motion: the Still frame, rendered once.
-    mountScene(el, { motion: !matchMedia('(prefers-reduced-motion: reduce)').matches })
+    const motion = !matchMedia('(prefers-reduced-motion: reduce)').matches
+    mountScene(el, { motion })
+    // Pressing a pill splashes the water (the press drops into it); let the
+    // splash show for a beat before the page changes. Plain pointer clicks
+    // only: keyboard and modified clicks behave as usual.
+    if (motion) {
+      for (const a of document.querySelectorAll<HTMLAnchorElement>('.pills a')) {
+        a.addEventListener('click', (e) => {
+          if (e.defaultPrevented || e.detail === 0 || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+          e.preventDefault()
+          setTimeout(() => location.assign(a.href), 220)
+        })
+      }
+    }
   }
 </script>
 
