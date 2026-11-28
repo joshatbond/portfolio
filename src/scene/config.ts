@@ -1,9 +1,10 @@
 /**
  * Every tunable for the homepage water scene, in one place.
  *
- * The scene: the viewport is a window frame with LED strips built into it,
- * looking down into dark, murky water that carries on past every edge. The
- * LEDs' light falls into the water and is bent by the moving surface.
+ * The scene: the viewport is a window looking out into the inky deep, like
+ * a submersible's. Lamps set in its frame throw their light out into the
+ * water, which carries on past every edge; the moving water at the window
+ * bends it, and marine snow drifts through it.
  */
 export const config = {
   view: {
@@ -50,25 +51,26 @@ export const config = {
   lamps: {
     /** Where each sits (0..1 across and down the window, on its edge) and how strong it is. */
     desktop: [
-      { at: [0.5, 0], power: 1 },
-      { at: [0, 0.42], power: 0.6 },
-      { at: [1, 0.42], power: 0.6 },
-      { at: [0.5, 1], power: 0.75 },
+      { at: [1 / 3, 0], power: 1 },
+      { at: [2 / 3, 0], power: 1 },
+      { at: [1 / 3, 1], power: 1 },
+      { at: [2 / 3, 1], power: 1 },
     ],
+    /** Phones: on the long sides instead. */
     mobile: [
-      { at: [0.5, 0], power: 1 },
-      { at: [0, 0.3], power: 0.55 },
-      { at: [1, 0.3], power: 0.55 },
-      { at: [0.5, 1], power: 0.7 },
+      { at: [0, 1 / 3], power: 1 },
+      { at: [0, 2 / 3], power: 1 },
+      { at: [1, 1 / 3], power: 1 },
+      { at: [1, 2 / 3], power: 1 },
     ],
     /** How far above the water they sit (px). */
     height: 30,
     /** Beam half-angles (degrees): full strength within the first, gone past the second. */
-    cone: [16, 58] as [number, number],
+    cone: [14, 44] as [number, number],
     /** How far each beam leans out, toward its edge of the frame (0 = straight down). */
     tilt: 0.05,
     /** Distance (px) at which a lamp's light has spread to half its strength. */
-    range: 640,
+    range: 340,
   },
 
   light: {
@@ -95,14 +97,14 @@ export const config = {
     lensGain: 1800,
     lensMax: 1.5,
     /** Light lost per px travelled through the water. */
-    extinction: 1 / 520,
+    extinction: 1 / 230,
     intensity: 0.0022,
     /**
      * The murk: clouds in the water (about `scale` px across, drifting at
      * `drift` px/s) that thicken and thin the light by up to ±`amount`.
      * Without a lamp on it, it's all but black (`ambient`).
      */
-    murk: { scale: 260, amount: 0.6, ambient: 0.18, drift: 6 },
+    murk: { scale: 240, amount: 0.75, ambient: 0.18, drift: 6 },
   },
 
   /**
@@ -116,25 +118,18 @@ export const config = {
     /** The layer they fill (px below the surface). */
     depth: [30, 950] as [number, number],
     /** Diameter (CSS px) just under the surface. */
-    size: 3,
+    size: 3.5,
     /** Drift (px/s) across, and sinking. */
     drift: [3, 10] as [number, number],
     sink: 7,
     /** Brightness in the dark, and in a lamp's full light. */
-    dark: 0.07,
-    lit: 3,
+    dark: 0.08,
+    lit: 8,
   },
 
   surface: {
     /** Screen-space refraction of everything below. */
     refract: 0.02,
-    /** How far in from the frame its reflections are strongest (px, by screen size). */
-    edgeFalloff: { min: 48, max: 160, ofShortSide: 0.12 },
-    /**
-     * The light glinting on the ripples: from `slope[0]` to full at
-     * `slope[1]`; near the frame's LEDs, and at `midWater` of that wherever
-     * a lamp lights the water.
-     */
     glint: { slope: [0.008, 0.04] as [number, number], midWater: 0.6, strength: 0.55 },
   },
 
@@ -150,7 +145,7 @@ export const config = {
      */
     pocket: {
       desktop: { pad: 0, feather: 1.2, floor: 0.6 },
-      mobile: { pad: 24, feather: 1.1, floor: 0.3 },
+      mobile: { pad: 0, feather: 0.6, floor: 0.25 },
     },
   },
 

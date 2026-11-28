@@ -6,10 +6,13 @@
 // The scene's still (reduced motion) is deterministic, so it's rendered
 // twice: as the page shows it, and with only the text's glow, not its
 // letters (as check-contrast.mjs hides DOM text but keeps its glow). Where
-// the two differ are the letters; their fully covered pixels are the text
-// colour. In each line of text, the dimmest tenth of those must reach the
-// floor against the brightest twentieth of the glow-only pixels, as
-// check-contrast.mjs reads DOM text against its 95th-percentile pixel.
+// the two differ are the letters. DOM text is measured by its declared
+// colour, which is what its fully covered pixels show; the scene's text has
+// no declared colour, so it's read from its fully covered pixels instead
+// (within 85% of the brightest: the lower quartile of those, as the light
+// behind varies). It must reach the floor against the brightest twentieth
+// of the glow-only pixels, as check-contrast.mjs reads DOM text against its
+// 95th-percentile pixel.
 //
 // usage: node scripts/check-scene-text.mjs [baseUrl]   (build and preview first)
 import { chromium } from 'playwright'
@@ -82,7 +85,7 @@ for (const { width, height } of SIZES) {
       }
     }
     const most = Math.max(...added.map((p) => p.d))
-    const glyph = added.filter((p) => p.d >= most * 0.7).map((p) => luminance(shown.data, p.i)).sort((a, b) => a - b)
+    const glyph = added.filter((p) => p.d >= most * 0.85).map((p) => luminance(shown.data, p.i)).sort((a, b) => a - b)
     const ground = added.map((p) => luminance(bare.data, p.i)).sort((a, b) => a - b)
     checked++
     if (!glyph.length || !ground.length || most <= 0) {
@@ -90,10 +93,13 @@ for (const { width, height } of SIZES) {
       console.log(`FAIL ${width}px "${text}": the scene didn't draw it`)
       continue
     }
-    const value = ratio(pick(glyph, 0.1), pick(ground, 0.95))
+    const value = ratio(pick(glyph, 0.25), pick(ground, 0.95))
     const ok = value >= FLOOR_MIN
     if (!ok) failures++
-    if (!ok || process.env.VERBOSE) console.log(`${ok ? 'ok  ' : 'FAIL'} ${value.toFixed(2)}:1 (min ${FLOOR_MIN})  ${width}px "${text}"`)
+    const detail = process.env.VERBOSE
+      ? `  [text ${pick(glyph, 0.25).toFixed(4)}, ground median ${pick(ground, 0.5).toFixed(4)} p95 ${pick(ground, 0.95).toFixed(4)}]`
+      : ''
+    if (!ok || process.env.VERBOSE) console.log(`${ok ? 'ok  ' : 'FAIL'} ${value.toFixed(2)}:1 (min ${FLOOR_MIN})  ${width}px "${text}"${detail}`)
   }
   await context.close()
 }

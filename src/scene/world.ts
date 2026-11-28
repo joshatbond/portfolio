@@ -57,8 +57,6 @@ export interface Capture {
   name: boolean
   /** false: only the name and title's glow, not their letters (to measure what they're read against). */
   glyphs: boolean
-  /** The frame's LED strips. */
-  led: boolean
 }
 
 /** An element's box relative to the scene's container, in CSS px (top-left origin). */

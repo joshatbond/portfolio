@@ -49,7 +49,7 @@ export function mountScene(container: HTMLElement, { motion = true, capture }: S
 
   const frozen = !motion || Boolean(capture)
   const world = createSceneWorld({ renderer, quad: new FullscreenQuad() }, container, {
-    capture: capture ? { chips: true, name: true, glyphs: true, led: true, ...capture } : null,
+    capture: capture ? { chips: true, name: true, glyphs: true, ...capture } : null,
     frozen,
   })
   const systems: System[] = [

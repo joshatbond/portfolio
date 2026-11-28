@@ -6,8 +6,8 @@ import { surfaceFrag } from '../shaders/surface'
 import { localRect, type System } from '../world'
 
 /**
- * The water surface and the frame's LEDs, drawn to the canvas over the light,
- * with the name and title deep below it, refracted at full resolution.
+ * The water at the window, drawn to the canvas over the light, with the name
+ * and title deep beyond it, refracted at full resolution.
  */
 export function surfaceSystem(): System {
   let material: ShaderMaterial | null = null
@@ -32,21 +32,20 @@ export function surfaceSystem(): System {
       nameTexture = abyss?.texture ?? null
       const r = abyss?.rect
       const nameRect = r ? new Vector4(r.x, r.y, r.width, r.height) : new Vector4()
-      const { min, max, ofShortSide } = config.surface.edgeFalloff
       material = pass(surfaceFrag, {
+        // The lamps' (shared) uniforms.
+        ...world.light.uniforms,
         tUnder: { value: null },
         tChips: { value: null },
         tSim: { value: null },
         uSimScale: { value: 1 },
         uResolution: { value: new Vector2(W, H) },
         uRefract: { value: config.surface.refract },
-        uEdgeFalloff: { value: Math.min(max, Math.max(min, Math.min(W, H) * ofShortSide)) },
         uPills: { value: pills },
         tName: { value: nameTexture },
         uNameRect: { value: nameRect },
         uNameDim: { value: config.abyss.dim },
-        uLed: { value: world.capture && !world.capture.led ? 0 : 1 },
-        uGlint: { value: new Vector4(...config.surface.glint.slope, config.surface.glint.midWater, config.surface.glint.strength) },
+        uGlint: { value: new Vector4(...config.surface.glint.slope, 0, config.surface.glint.strength) },
       })
     },
     update(world) {

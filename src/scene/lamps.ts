@@ -18,6 +18,9 @@ export function updateLampUniforms(world: SceneWorld) {
   const L = config.lamps
   const c = config.light
   const scale = lightScale(world)
+  // The lamps' reach shrinks less than the window does, so a phone's pools
+  // still read.
+  const reach = Math.pow(scale, 0.75)
   const pk = mobile ? config.abyss.pocket.mobile : config.abyss.pocket.desktop
   const lamps = (mobile ? L.mobile : L.desktop).slice(0, MAX_LAMPS)
   const pos = Array.from({ length: MAX_LAMPS }, () => new Vector4())
@@ -35,10 +38,10 @@ export function updateLampUniforms(world: SceneWorld) {
     uLamps: { value: pos },
     uLampDirs: { value: dirs },
     uLampCount: { value: lamps.length },
-    uLampHeight: { value: L.height * scale },
+    uLampHeight: { value: L.height * reach },
     uLampCone: { value: new Vector2(Math.cos(rad(L.cone[1])), Math.cos(rad(L.cone[0]))) },
-    uLampRange: { value: L.range * scale },
-    uExtinction: { value: c.extinction / scale },
+    uLampRange: { value: L.range * reach },
+    uExtinction: { value: c.extinction / reach },
     uHalf: { value: new Vector2(W / 2, H / 2) },
     uCamZ: { value: world.view.distance },
     uTime: u.uTime ?? { value: 0 },

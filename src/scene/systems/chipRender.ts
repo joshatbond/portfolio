@@ -8,7 +8,6 @@ import {
   OneMinusSrcAlphaFactor,
   Points,
   ShaderMaterial,
-  Vector2,
   WebGLRenderTarget,
 } from 'three'
 import { Bubble, Chip, Position, Rotation } from '../chips/components'
@@ -30,7 +29,7 @@ export function chipRenderSystem(): System {
     vertexShader: chipVert,
     fragmentShader: chipFrag,
     vertexColors: true,
-    uniforms: { uHalf: { value: new Vector2() }, uFogDepth: { value: config.chips.fogDepth } },
+    uniforms: { uFogDepth: { value: config.chips.fogDepth } },
   })
 
   // Bubbles: one Points object, refilled from the bubble entities each frame.
@@ -72,7 +71,8 @@ export function chipRenderSystem(): System {
       camera.far = P + 2000
       camera.lookAt(0, 0, 0)
       camera.updateProjectionMatrix()
-      material.uniforms.uHalf.value.set(W / 2, H / 2)
+      // The lamps' (shared) uniforms, refreshed for this window.
+      Object.assign(material.uniforms, world.light.uniforms)
       bubbleMaterial.uniforms.uSize.value = config.chips.bubbles.size * dpr
       bubbleMaterial.uniforms.uDistance.value = P
       target?.dispose()

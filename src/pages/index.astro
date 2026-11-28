@@ -49,8 +49,8 @@ const [first, ...rest] = site.name.split(' ')
   const params = new URLSearchParams(location.search)
   const capture = params.get('capture')
   const captures = {
-    chips: { name: false, led: false },
-    empty: { name: false, led: false, chips: false },
+    chips: { name: false },
+    empty: { name: false, chips: false },
     glow: { glyphs: false },
   }
   if (el && capture && capture in captures) {
@@ -115,7 +115,7 @@ const [first, ...rest] = site.name.split(' ')
 <style>
   /* The name and title hang deep in the water, softly lit (Figma "Abyss"
      layer, seen through the haze): pool/paint at about half strength, just
-     bright enough to hold the 4.57:1 floor where the rim light reaches it. */
+     bright enough to hold the 4.57:1 floor where the lamps' light reaches it. */
   .abyss {
     /* Text in the water: pressing around shouldn't select it. */
     user-select: none;

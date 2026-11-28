@@ -1,7 +1,7 @@
 // Renders the pool scene's stills for devices that can't run it (no WebGL,
 // Save-Data, low power): the water lit from the frame, with the chips at home
-// (homepage) or empty (404). The name, the pills and the frame's LEDs aren't
-// in the image; the page draws those itself.
+// (homepage) or empty (404). The name and the pills aren't in the image; the
+// page draws those itself.
 //
 // usage: pnpm build && pnpm preview, then node scripts/render-pool-still.mjs [baseUrl]
 import { chromium } from 'playwright'

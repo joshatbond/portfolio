@@ -1,21 +1,21 @@
+import { lampsChunk } from './lamps'
+
 // The water at the window: it refracts everything beyond it, catches the
-// light on its ripples, mirrors the pills as they wobble, and the LED strips
-// glow along the frame itself.
+// lamps' light on its ripples and mirrors the pills as they wobble.
 
 export const surfaceFrag = /* glsl */ `
+${lampsChunk}
 uniform sampler2D tUnder;
 uniform sampler2D tChips;    // chips over transparent
 uniform sampler2D tSim;
 uniform float uSimScale;
 uniform vec2 uResolution;    // CSS px
 uniform float uRefract;
-uniform float uEdgeFalloff;  // px: how far in from the frame its reflections reach
 uniform vec4 uPills[2];      // x, y, w, h in CSS px (top-left origin)
 uniform sampler2D tName;     // the name and title, drawn from the DOM
 uniform vec4 uNameRect;      // where tName sits: x, y, w, h in CSS px (top-left origin)
 uniform float uNameDim;
-uniform float uLed;          // the frame's LEDs (off when capturing a still)
-uniform vec4 uGlint;         // slope where glints start, slope where they're full, share where lamps light the water, strength
+uniform vec4 uGlint;         // slope where glints start, slope where they're full, -, strength
 varying vec2 vUv;
 
 float roundedBox(vec2 p, vec2 b, float r) {
@@ -48,19 +48,18 @@ void main() {
   col = col * (1.0 - chip.a) + chip.rgb;
 
   vec2 px = vUv * uResolution;  // y up
-  float dEdge = min(min(px.x, uResolution.x - px.x), min(px.y, uResolution.y - px.y));
 
-  // Light glinting on the ripples: a ripple's side that faces the frame
-  // catches its LEDs near the frame, and anywhere a lamp lights the water,
-  // a glint of that. In the dark, nothing.
+  // The lamps glinting on the ripples: where a lamp lights the water, a
+  // ripple's side that faces it catches a glint. In the dark, nothing.
   vec2 nd = normalize(n + 1e-6);
-  float lean = smoothstep(uGlint.x, uGlint.y, slope);
+  vec2 s = px - uResolution * 0.5;  // world px at the surface
   float facing = 0.0;
-  facing += pow(max(0.0, -nd.x), 4.0) * (uGlint.z * lit + exp(-px.x / uEdgeFalloff));
-  facing += pow(max(0.0, nd.x), 4.0) * (uGlint.z * lit + exp(-(uResolution.x - px.x) / uEdgeFalloff));
-  facing += pow(max(0.0, -nd.y), 4.0) * (uGlint.z * lit + exp(-px.y / uEdgeFalloff));
-  facing += pow(max(0.0, nd.y), 4.0) * (uGlint.z * lit + exp(-(uResolution.y - px.y) / uEdgeFalloff));
-  col += vec3(0.40, 0.91, 0.98) * facing * lean * uGlint.w;
+  for (int j = 0; j < MAX_LAMPS; j++) {
+    if (j >= uLampCount) break;
+    vec2 toLamp = normalize(uLamps[j].xy - s + 1e-3);
+    facing = max(facing, pow(max(0.0, dot(nd, toLamp)), 4.0));
+  }
+  col += vec3(0.40, 0.91, 0.98) * facing * lit * smoothstep(uGlint.x, uGlint.y, slope) * uGlint.w;
 
   // The pills, mirrored and wobbling on moving water.
   for (int i = 0; i < 2; i++) {
@@ -73,16 +72,11 @@ void main() {
     col += vec3(0.13, 0.83, 0.93) * glint * 0.35;
   }
 
-
-  // The LED strips in the frame: a hot core and its glow.
-  float core = 1.0 - smoothstep(1.0, 2.5, dEdge);
-  float glow = 0.95 * exp(-dEdge / 3.0) + 0.45 * exp(-dEdge / 11.0) + 0.25 * exp(-dEdge / 30.0);
-  col += vec3(0.65, 0.95, 0.99) * core * 0.95 * uLed;
-  col += vec3(0.024, 0.714, 0.831) * glow * 0.42 * uLed;
-
   vec2 q = vUv - 0.5;
   col *= 1.0 - smoothstep(0.35, 0.75, length(q)) * 0.4;
 
+  // Dithered, so the dark water's long, faint gradients don't band.
+  col += (hash12(gl_FragCoord.xy) - 0.5) / 255.0;
   gl_FragColor = vec4(col, 1.0);
 }
 `
