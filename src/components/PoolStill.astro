@@ -1,58 +1,46 @@
 ---
 /**
- * The pool as a static still, in CSS (Figma "Tub (screen = rim)" layers of
- * 2017:1046 / 2076:2029). The screen is the hot tub: four walls drop from the
- * viewport edges in real perspective, lit by cyan caustics that fade to black
- * by ~45% depth, under a neon LED rim. No floor.
+ * The pool as a static still, in CSS. The viewport is a window frame with LED
+ * strips in it, over dark, murky water that carries on past every edge: the
+ * LEDs' light falls into the water as soft shafts and fades into the deep.
  *
- * It's the first paint and the fallback for reduced motion, no WebGL, low
- * power and Save-Data; the WebGL scene fades in over it when it can run.
+ * It's the first paint, and what the WebGL scene fades in over, so it keeps
+ * to the same look. (The scene's own pre-rendered still replaces it where
+ * WebGL can't run.)
  */
-import { causticsUrl } from '../lib/caustics'
-
 interface Props {
   class?: string
 }
 
 const { class: className } = Astro.props
 
-// Motes drifting in the mid-water (Figma "Particles" layers): a fixed scatter.
+// Motes drifting in the mid-water: a fixed scatter.
 let seed = 20261127
 const rand = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296)
 const motes = Array.from({ length: 36 }, () => {
   const x = (8 + rand() * 84).toFixed(2)
   const y = (8 + rand() * 84).toFixed(2)
-  const a = (0.12 + rand() * 0.25).toFixed(2)
+  const a = (0.1 + rand() * 0.2).toFixed(2)
   const r = rand() < 0.2 ? 1.5 : 1
   return `radial-gradient(${r}px ${r}px at ${x}% ${y}%, rgb(207 250 254 / ${a}), transparent)`
 }).join(',')
 ---
 
-<div class:list={['tub', className]} style={`--caustics: url(${await causticsUrl()}); --motes: ${motes}`} aria-hidden="true">
-  <div class="walls">
-    <div class="wall wall--top"></div>
-    <div class="wall wall--bottom"></div>
-    <div class="wall wall--left"></div>
-    <div class="wall wall--right"></div>
-  </div>
-  <div class="haze"></div>
+<div class:list={['tub', className]} style={`--motes: ${motes}`} aria-hidden="true">
+  <div class="light"></div>
+  <div class="shafts"></div>
   <div class="motes"></div>
   <slot />
-  <div class="edge-glow"></div>
   <div class="vignette"></div>
   <div class="rim"></div>
 </div>
 
 <style>
   .tub {
-    /* Perspective puts the abyss (name depth) at about half scale, as drawn. */
-    --depth: 900px;
     position: absolute;
     inset: 0;
     overflow: hidden;
     background: var(--pool-deep);
-    perspective: 865px;
-    perspective-origin: 50% 50%;
   }
 
   .tub > * {
@@ -61,118 +49,42 @@ const motes = Array.from({ length: 36 }, () => {
     pointer-events: none;
   }
 
-  .walls {
-    transform-style: preserve-3d;
+  /* The LEDs' light in the murky water, strongest at the frame and swallowed
+     within a fraction of the window. */
+  .light {
+    box-shadow:
+      inset 0 0 2vmin rgb(34 211 238 / 0.35),
+      inset 0 0 12vmin rgb(8 145 178 / 0.6),
+      inset 0 0 28vmin rgb(6 182 212 / 0.4),
+      inset 0 0 48vmin rgb(8 145 178 / 0.2);
   }
 
-  /* Each wall hinges on a viewport edge and drops away into the screen.
-     Layers, nearest the rim first: rim light, caustics (screen), then the
-     depth fade that takes it all to black by ~45%. */
-  .wall {
-    position: absolute;
-    -webkit-mask-image: linear-gradient(var(--dir), #000 0%, rgb(0 0 0 / 0.8) 8%, rgb(0 0 0 / 0.38) 22%, transparent 45%);
-    mask-image: linear-gradient(var(--dir), #000 0%, rgb(0 0 0 / 0.8) 8%, rgb(0 0 0 / 0.38) 22%, transparent 45%);
-    backface-visibility: hidden;
-  }
-
-  .wall::before,
-  .wall::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-  }
-
-  .wall::before {
-    background: var(--caustics) 0 0 / 512px 512px repeat;
-    opacity: 0.42;
-  }
-
-  .wall::after {
-    background: linear-gradient(var(--dir), rgb(34 211 238 / 0.5) 0%, rgb(6 182 212 / 0.34) 1%, rgb(8 145 178 / 0.14) 5%, rgb(14 116 144 / 0.05) 16%, rgb(14 116 144 / 0) 40%);
-    mix-blend-mode: screen;
-  }
-
-  .wall--top {
-    --dir: to bottom;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: var(--depth);
-    transform-origin: top center;
-    transform: rotateX(-90deg);
-  }
-
-  .wall--bottom {
-    --dir: to top;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: var(--depth);
-    transform-origin: bottom center;
-    transform: rotateX(90deg);
-  }
-
-  .wall--left {
-    --dir: to right;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: var(--depth);
-    transform-origin: center left;
-    transform: rotateY(90deg);
-  }
-
-  .wall--right {
-    --dir: to left;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    width: var(--depth);
-    transform-origin: center right;
-    transform: rotateY(-90deg);
-  }
-
-  /* Haze at four depths (Figma: -110, -300, -520, -780). */
-  .haze {
+  /* Shafts where the moving surface bent the light, fanning in from the
+     frame; two spacings so they don't read as a regular burst. */
+  .shafts {
     background:
-      radial-gradient(closest-side, rgb(1 10 13 / 0.24), rgb(1 10 13 / 0.14) 70%, rgb(1 10 13 / 0)),
-      radial-gradient(closest-side, rgb(1 10 13 / 0.24), rgb(1 10 13 / 0.14) 70%, rgb(1 10 13 / 0));
-    background-size: 120% 120%;
-    background-position: center;
+      repeating-conic-gradient(from 3deg at 50% 50%, rgb(34 211 238 / 0.06) 0deg 0.7deg, transparent 0.7deg 2.9deg),
+      repeating-conic-gradient(from 1deg at 50% 50%, rgb(34 211 238 / 0.05) 0deg 1.3deg, transparent 1.3deg 5.3deg);
+    -webkit-mask-image: radial-gradient(closest-side, transparent 62%, rgb(0 0 0 / 0.8) 100%, #000 125%);
+    mask-image: radial-gradient(closest-side, transparent 62%, rgb(0 0 0 / 0.8) 100%, #000 125%);
+    filter: blur(0.6px);
   }
 
   .motes {
     background: var(--motes);
   }
 
-  /* Light spilling off the rim, 110px in from each edge. */
-  .edge-glow {
-    background:
-      linear-gradient(to bottom, rgb(6 182 212 / 0.2), rgb(8 145 178 / 0.08) 27.5px, rgb(8 145 178 / 0) 110px),
-      linear-gradient(to top, rgb(6 182 212 / 0.2), rgb(8 145 178 / 0.08) 27.5px, rgb(8 145 178 / 0) 110px),
-      linear-gradient(to right, rgb(6 182 212 / 0.2), rgb(8 145 178 / 0.08) 27.5px, rgb(8 145 178 / 0) 110px),
-      linear-gradient(to left, rgb(6 182 212 / 0.2), rgb(8 145 178 / 0.08) 27.5px, rgb(8 145 178 / 0) 110px);
-  }
-
   .vignette {
-    background: radial-gradient(farthest-corner, rgb(0 0 0 / 0) 55%, rgb(0 0 0 / 0.4));
+    background: radial-gradient(farthest-corner, rgb(0 0 0 / 0) 55%, rgb(0 0 0 / 0.35));
   }
 
-  /* The neon LED tube along all four edges (from the Resume button's blue). */
+  /* The LED strips in the window frame. */
   .rim {
     border: 2px solid rgb(165 243 252 / 0.95);
     box-shadow:
       inset 0 0 6px rgb(34 211 238 / 0.95),
-      inset 0 0 22px rgb(6 182 212 / 0.75),
-      inset 0 0 60px rgb(8 145 178 / 0.55),
+      inset 0 0 22px rgb(6 182 212 / 0.6),
       0 0 6px rgb(34 211 238 / 0.95);
     view-transition-name: rim;
-  }
-
-  @media (min-width: 720px) {
-    .tub {
-      --depth: 1100px;
-      perspective: 1240px;
-    }
   }
 </style>
