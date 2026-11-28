@@ -6,9 +6,7 @@ import {
   Mesh,
   OneFactor,
   OneMinusSrcAlphaFactor,
-  PerspectiveCamera,
   Points,
-  Scene,
   ShaderMaterial,
   Vector2,
   WebGLRenderTarget,
@@ -19,12 +17,14 @@ import { config } from '../config'
 import { bubbleFrag, bubbleVert, chipFrag, chipVert } from '../shaders/chips'
 import type { System } from '../world'
 
-/** Draws the chips at full resolution (antialiased) into world.chips.target. */
+/**
+ * Keeps a mesh for every chip and a point for every bubble in the deep, and
+ * draws the deep (with anything else in it, like the specks) at full
+ * resolution, antialiased, into world.chips.target.
+ */
 export function chipRenderSystem(): System {
-  const scene = new Scene()
   const geometries = new Map<string, BufferGeometry>()
   const meshes = new Map<number, Mesh>()
-  const camera = new PerspectiveCamera()
   let target: WebGLRenderTarget | null = null
   const material = new ShaderMaterial({
     vertexShader: chipVert,
@@ -52,7 +52,6 @@ export function chipRenderSystem(): System {
   })
   const bubblePoints = new Points(bubbleGeometry, bubbleMaterial)
   bubblePoints.frustumCulled = false
-  scene.add(bubblePoints)
 
   const geometryFor = (key: string) => {
     let g = geometries.get(key)
@@ -63,6 +62,8 @@ export function chipRenderSystem(): System {
   return {
     resize(world) {
       const { width: W, height: H, dpr } = world.viewport
+      const { scene, camera } = world.deep
+      if (!bubblePoints.parent) scene.add(bubblePoints)
       const P = world.view.distance
       camera.position.set(0, 0, P)
       camera.fov = (2 * Math.atan(H / 2 / P) * 180) / Math.PI
@@ -82,6 +83,7 @@ export function chipRenderSystem(): System {
     },
     update(world) {
       if (!target) return
+      const { scene, camera } = world.deep
       const live = new Set<number>()
       for (const eid of query(world, [Chip, Position, Rotation])) {
         live.add(eid)

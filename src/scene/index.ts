@@ -6,6 +6,7 @@ import { chipRenderSystem } from './systems/chipRender'
 import { chipsSystem } from './systems/chips'
 import { inputSystem } from './systems/input'
 import { lightSystem } from './systems/light'
+import { specksSystem } from './systems/specks'
 import { stirSystem } from './systems/stir'
 import { surfaceSystem } from './systems/surface'
 import { timeSystem } from './systems/time'
@@ -58,6 +59,7 @@ export function mountScene(container: HTMLElement, { motion = true, capture }: S
     ...(frozen ? [] : [stirSystem()]),
     wavesSystem(),
     lightSystem(),
+    specksSystem(),
     chipRenderSystem(),
     surfaceSystem(),
   ]

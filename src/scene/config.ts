@@ -43,6 +43,34 @@ export const config = {
     press: { radius: 0.028, strength: 0.009 },
   },
 
+  /**
+   * The lamps set in the window frame, like a submersible's floodlights:
+   * each throws a soft cone down into the deep, and the dark swallows it.
+   */
+  lamps: {
+    /** Where each sits (0..1 across and down the window, on its edge) and how strong it is. */
+    desktop: [
+      { at: [0.5, 0], power: 1 },
+      { at: [0, 0.42], power: 0.6 },
+      { at: [1, 0.42], power: 0.6 },
+      { at: [0.5, 1], power: 0.75 },
+    ],
+    mobile: [
+      { at: [0.5, 0], power: 1 },
+      { at: [0, 0.3], power: 0.55 },
+      { at: [1, 0.3], power: 0.55 },
+      { at: [0.5, 1], power: 0.7 },
+    ],
+    /** How far above the water they sit (px). */
+    height: 30,
+    /** Beam half-angles (degrees): full strength within the first, gone past the second. */
+    cone: [16, 58] as [number, number],
+    /** How far each beam leans out, toward its edge of the frame (0 = straight down). */
+    tilt: 0.05,
+    /** Distance (px) at which a lamp's light has spread to half its strength. */
+    range: 640,
+  },
+
   light: {
     /** Fraction of the device pixel size the light volume renders at (it's soft). */
     resolution: 0.25,
@@ -50,38 +78,51 @@ export const config = {
     temporalBlend: 0.12,
     /** Blur over the finished light, in light texels (×4 CSS px at full scale). */
     blur: 2.5,
-    steps: { desktop: 14, mobile: 10 },
-    /** How far below the surface the volume is marched (px): murky water swallows the rest. */
-    maxDepth: 320,
+    steps: { desktop: 24, mobile: 16 },
+    /** How far into the deep the light is marched (px). */
+    maxDepth: 1000,
     /**
-     * Distances below are for a window whose short side is `referenceSide`
-     * px; they scale with the window so the light keeps to the frame on phones.
+     * Distances here and in `lamps` are for a window whose short side is
+     * `referenceSide` px; they scale with the window, so phones get the same
+     * picture, smaller.
      */
     referenceSide: 900,
-    /** Only frame strips within this distance light a sample (px). */
-    reach: 520,
-    /** The LEDs sit this far above the water, in the frame (px). */
-    ledHeight: 60,
-    /** Higher aims the LEDs more steeply down. */
-    lobe: 1.4,
     /**
-     * How strongly the swells bend the light: broad, soft brightening where
-     * they gather it and dimming where they spread it, at most `lensMax`×
-     * either way.
+     * How strongly the surface's broad swells bend the light: soft
+     * brightening where they gather it and dimming where they spread it, at
+     * most `lensMax`× either way.
      */
     lensGain: 1800,
     lensMax: 1.5,
-    /** Murky water: light lost per px travelled. Keeps the glow near the frame. */
-    extinction: 1 / 110,
-    /** Geometric spreading per px travelled. */
-    falloff: 0.006,
-    intensity: 0.0045,
+    /** Light lost per px travelled through the water. */
+    extinction: 1 / 520,
+    intensity: 0.0022,
     /**
-     * Drifting murk: clouds in the water (about `scale` px across) that thicken
-     * and thin the glow by up to ±`amount` and are faintly lit everywhere
-     * (`ambient`), so the middle still reads as water. `drift` is px/s.
+     * The murk: clouds in the water (about `scale` px across, drifting at
+     * `drift` px/s) that thicken and thin the light by up to ±`amount`.
+     * Without a lamp on it, it's all but black (`ambient`).
      */
-    murk: { scale: 520, amount: 0.35, ambient: 1.6, drift: 9 },
+    murk: { scale: 260, amount: 0.6, ambient: 0.18, drift: 6 },
+  },
+
+  /**
+   * Marine snow: specks drifting and slowly sinking through the deep, lit by
+   * the lamps they pass through and all but invisible outside them.
+   */
+  specks: {
+    /** Specks per million CSS px of window. */
+    density: 900,
+    max: 1600,
+    /** The layer they fill (px below the surface). */
+    depth: [30, 950] as [number, number],
+    /** Diameter (CSS px) just under the surface. */
+    size: 3,
+    /** Drift (px/s) across, and sinking. */
+    drift: [3, 10] as [number, number],
+    sink: 7,
+    /** Brightness in the dark, and in a lamp's full light. */
+    dark: 0.07,
+    lit: 3,
   },
 
   surface: {
@@ -90,10 +131,11 @@ export const config = {
     /** How far in from the frame its reflections are strongest (px, by screen size). */
     edgeFalloff: { min: 48, max: 160, ofShortSide: 0.12 },
     /**
-     * The LEDs glinting on the ripples: from `slope[0]` to full at
-     * `slope[1]`, at `midWater` of their strength away from the frame.
+     * The light glinting on the ripples: from `slope[0]` to full at
+     * `slope[1]`; near the frame's LEDs, and at `midWater` of that wherever
+     * a lamp lights the water.
      */
-    glint: { slope: [0.008, 0.04] as [number, number], midWater: 0.3, strength: 0.55 },
+    glint: { slope: [0.008, 0.04] as [number, number], midWater: 0.6, strength: 0.55 },
   },
 
   /** The name and title in the deep: pool/paint seen through the water. */
@@ -103,10 +145,13 @@ export const config = {
      * The water thickens around the name and title: an ellipse around them
      * (padded by `pad` px, its edge softened over `feather` of its radius and
      * frayed by the murk) where the light falls to `floor` of its strength.
-     * It keeps them at the contrast floor on narrow screens, where the side
-     * strips' light meets in the middle.
+     * It keeps them at the contrast floor on phones, where the lamps' light
+     * reaches the middle; wide windows barely need it.
      */
-    pocket: { pad: 24, feather: 1.1, floor: 0.3 },
+    pocket: {
+      desktop: { pad: 0, feather: 1.2, floor: 0.6 },
+      mobile: { pad: 24, feather: 1.1, floor: 0.3 },
+    },
   },
 
   chips: {

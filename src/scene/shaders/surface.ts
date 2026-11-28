@@ -1,6 +1,6 @@
-// The water surface, seen from above: it refracts everything below, catches
-// the frame's light on its crests, mirrors the pills as they wobble, and the
-// LED strips glow along the frame itself.
+// The water at the window: it refracts everything beyond it, catches the
+// light on its ripples, mirrors the pills as they wobble, and the LED strips
+// glow along the frame itself.
 
 export const surfaceFrag = /* glsl */ `
 uniform sampler2D tUnder;
@@ -15,7 +15,7 @@ uniform sampler2D tName;     // the name and title, drawn from the DOM
 uniform vec4 uNameRect;      // where tName sits: x, y, w, h in CSS px (top-left origin)
 uniform float uNameDim;
 uniform float uLed;          // the frame's LEDs (off when capturing a still)
-uniform vec4 uGlint;         // slope where glints start, slope where they're full, mid-water share, strength
+uniform vec4 uGlint;         // slope where glints start, slope where they're full, share where lamps light the water, strength
 varying vec2 vUv;
 
 float roundedBox(vec2 p, vec2 b, float r) {
@@ -30,6 +30,8 @@ void main() {
 
   vec2 bent = vUv + n * uRefract;
   vec3 col = texture2D(tUnder, bent).rgb;
+  // How lit the water is here (by the lamps; the murk alone barely counts).
+  float lit = smoothstep(0.01, 0.18, dot(col, vec3(0.25, 0.65, 0.1)));
   // The name and title, deep below: the camera never moves, so they sit
   // right where the page lays them out, bent by the surface like the light.
   if (uNameRect.z > 0.0) {
@@ -48,16 +50,16 @@ void main() {
   vec2 px = vUv * uResolution;  // y up
   float dEdge = min(min(px.x, uResolution.x - px.x), min(px.y, uResolution.y - px.y));
 
-  // The frame's LEDs, mirrored in the ripples: a ripple's side that faces a
-  // strip catches a glint of it. Brightest near the frame, and faint all the
-  // way across, so the open water still shows it's moving.
+  // Light glinting on the ripples: a ripple's side that faces the frame
+  // catches its LEDs near the frame, and anywhere a lamp lights the water,
+  // a glint of that. In the dark, nothing.
   vec2 nd = normalize(n + 1e-6);
   float lean = smoothstep(uGlint.x, uGlint.y, slope);
   float facing = 0.0;
-  facing += pow(max(0.0, -nd.x), 4.0) * (uGlint.z + exp(-px.x / uEdgeFalloff));
-  facing += pow(max(0.0, nd.x), 4.0) * (uGlint.z + exp(-(uResolution.x - px.x) / uEdgeFalloff));
-  facing += pow(max(0.0, -nd.y), 4.0) * (uGlint.z + exp(-px.y / uEdgeFalloff));
-  facing += pow(max(0.0, nd.y), 4.0) * (uGlint.z + exp(-(uResolution.y - px.y) / uEdgeFalloff));
+  facing += pow(max(0.0, -nd.x), 4.0) * (uGlint.z * lit + exp(-px.x / uEdgeFalloff));
+  facing += pow(max(0.0, nd.x), 4.0) * (uGlint.z * lit + exp(-(uResolution.x - px.x) / uEdgeFalloff));
+  facing += pow(max(0.0, -nd.y), 4.0) * (uGlint.z * lit + exp(-px.y / uEdgeFalloff));
+  facing += pow(max(0.0, nd.y), 4.0) * (uGlint.z * lit + exp(-(uResolution.y - px.y) / uEdgeFalloff));
   col += vec3(0.40, 0.91, 0.98) * facing * lean * uGlint.w;
 
   // The pills, mirrored and wobbling on moving water.

@@ -1,5 +1,5 @@
 import { createWorld, type World } from 'bitecs'
-import type { Texture, WebGLRenderer, WebGLRenderTarget } from 'three'
+import { PerspectiveCamera, Scene, type Texture, type WebGLRenderer, type WebGLRenderTarget } from 'three'
 import type { FullscreenQuad } from './gpu'
 import * as components from './chips/components'
 
@@ -32,8 +32,13 @@ export interface SceneContext {
   gpu: { renderer: WebGLRenderer; quad: FullscreenQuad }
   /** Published by the waves system. */
   water: { height: Texture | null; curvature: Texture | null; simScale: number }
-  /** Published by the light system. */
-  light: { target: WebGLRenderTarget | null }
+  /**
+   * Published by the light system: the lit water, and the lamps' uniforms,
+   * shared (the same objects) with everything else they light.
+   */
+  light: { target: WebGLRenderTarget | null; uniforms: Record<string, { value: unknown }> }
+  /** Everything in the water, seen through the window: the chips, bubbles and specks. */
+  deep: { scene: Scene; camera: PerspectiveCamera }
   /** Published by the chip renderer: chips over transparent, for the surface to composite. */
   chips: { target: WebGLRenderTarget | null }
   /** Chip components, registered with the world. */
@@ -87,7 +92,8 @@ export function createSceneWorld(
     drops: [],
     gpu,
     water: { height: null, curvature: null, simScale: 1 },
-    light: { target: null },
+    light: { target: null, uniforms: {} },
+    deep: { scene: new Scene(), camera: new PerspectiveCamera() },
     chips: { target: null },
     components,
     capture,
