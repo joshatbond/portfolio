@@ -76,6 +76,9 @@ import bunChip from '../assets/pool/bun-chip.png'
      (anchored to it, so it never sits behind the glyphs). */
   .abyss {
     position: relative;
+    /* Room for the chip above the heading, so on short screens it clears the
+       HUD (on taller ones the content sits low and this changes nothing). */
+    margin-top: 64px;
   }
 
   :global(.sinking-chip) {
