@@ -13,6 +13,26 @@ const [first, ...rest] = site.name.split(' ')
 ---
 
 <PoolLayout status hint>
+  <script is:inline slot="head">
+    // Can the water scene run here? Asked before first paint, so the pool's
+    // still shows the right water (PoolStill.astro). It needs WebGL2 with
+    // half-float render targets, and stays off with Save-Data, on low-power
+    // devices and with ?scene=off (the fallback, for check-contrast.mjs).
+    // html[data-scene] is 'loading' where it can, then 'ready' once it's up
+    // (src/scene).
+    {
+      const nav = navigator
+      const saveData = nav.connection?.saveData || matchMedia('(prefers-reduced-data: reduce)').matches
+      const lowPower = (nav.deviceMemory ?? 8) < 4 || (nav.hardwareConcurrency ?? 8) < 4
+      if (new URLSearchParams(location.search).get('scene') !== 'off' && !saveData && !lowPower) {
+        const gl = document.createElement('canvas').getContext('webgl2')
+        if (gl && (gl.getExtension('EXT_color_buffer_half_float') || gl.getExtension('EXT_color_buffer_float'))) {
+          document.documentElement.dataset.scene = 'loading'
+        }
+        gl?.getExtension('WEBGL_lose_context')?.loseContext()
+      }
+    }
+  </script>
   <div slot="scene" class="pool-scene" aria-hidden="true"></div>
   <div class="abyss">
     <h1 class="name">
@@ -30,22 +50,12 @@ const [first, ...rest] = site.name.split(' ')
 </PoolLayout>
 
 <script>
-  // The water scene: loaded after first paint, and only where it can run well.
-  // Otherwise the still pool stays (no WebGL2, Save-Data, low-power devices).
+  // The water scene: loaded after first paint, and only where it can run well
+  // (the check in <head> above). Otherwise the still pool stays.
   const el = document.querySelector<HTMLElement>('.pool-scene')
-  const nav = navigator as Navigator & { connection?: { saveData?: boolean }; deviceMemory?: number }
-  const saveData = nav.connection?.saveData || matchMedia('(prefers-reduced-data: reduce)').matches
-  const lowPower = (nav.deviceMemory ?? 8) < 4 || (nav.hardwareConcurrency ?? 8) < 4
-  const canRun = () => {
-    const gl = document.createElement('canvas').getContext('webgl2')
-    const ok = Boolean(gl && (gl.getExtension('EXT_color_buffer_half_float') || gl.getExtension('EXT_color_buffer_float')))
-    gl?.getExtension('WEBGL_lose_context')?.loseContext()
-    return ok
-  }
   // For the scripts: ?capture=chips|empty renders a still to save
-  // (render-pool-still.mjs), ?capture=glow the page's still with only its
-  // name and title's glow (check-scene-text.mjs), and ?scene=off keeps the page's
-  // fallback, as on devices that can't run the scene (check-contrast.mjs).
+  // (render-pool-still.mjs), and ?capture=glow the page's still with only its
+  // name and title's glow (check-scene-text.mjs).
   const params = new URLSearchParams(location.search)
   const capture = params.get('capture')
   const captures = {
@@ -57,7 +67,7 @@ const [first, ...rest] = site.name.split(' ')
     await document.fonts.ready
     const { mountScene } = await import('../scene')
     mountScene(el, { motion: false, capture: captures[capture as keyof typeof captures] })
-  } else if (el && params.get('scene') !== 'off' && !saveData && !lowPower && canRun()) {
+  } else if (el && document.documentElement.dataset.scene === 'loading') {
     await document.fonts.ready
     const { mountScene } = await import('../scene')
     // Reduced motion: the Still frame, rendered once.

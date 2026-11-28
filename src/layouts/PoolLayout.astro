@@ -30,6 +30,7 @@ const { status = false, hint = false, still = 'chips', ...meta } = Astro.props
 ---
 
 <BaseLayout {...meta} bodyClass="pool-page">
+  <slot name="head" slot="head" />
   <div class="pool">
     <PoolStill variant={still}>
       <slot name="still" />
@@ -78,6 +79,24 @@ const { status = false, hint = false, still = 'chips', ...meta } = Astro.props
     justify-content: flex-end;
     padding: 96px var(--gutter) max(14.8svh, 88px);
     text-align: center;
+  }
+
+  /* The water thickens around the deep text, as it does in the scene
+     (config.abyss.pocket): a soft shadow between the CSS light and the
+     still. Before the still decodes, or with images off, only the CSS paint
+     shows, with the lamp's glow right behind the text: this keeps the text
+     at the contrast floor there. Once the still paints, it covers it. */
+  .surface > :global(.abyss) {
+    position: relative;
+  }
+
+  .surface > :global(.abyss::before) {
+    content: '';
+    position: absolute;
+    inset: -63%;
+    z-index: -1;
+    background: radial-gradient(closest-side, rgb(0 2 4 / 0.5) 50%, transparent);
+    pointer-events: none;
   }
 
   /* Without the hint below them, phones anchor the pills near the bottom. */
