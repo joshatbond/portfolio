@@ -2,15 +2,23 @@ import { lampsChunk } from './lamps'
 
 // The stack chips: their own colours, lit from above, catching the lamps'
 // cyan light on the faces turned toward them, and dimmed by the murky water
-// as they sink. Rendered into their own target (alpha = coverage) and
-// composited under the surface so the water refracts them.
+// as they sink, fading into it when they're deep. Rendered into their own
+// target (alpha = coverage, less as they fade) and composited under the
+// surface so the water refracts them.
 
 export const chipVert = /* glsl */ `
+uniform float uFogDepth;
+uniform float uClear;
 varying vec3 vColor;
 varying vec3 vNormalW;
 varying vec3 vWorld;
+flat varying float vFade;
 void main() {
   vColor = color;
+  // Past a thin clear layer, a chip fades into the water's own light (by
+  // its centre's depth, the same all over it).
+  float murk = -modelMatrix[3].z - uClear;
+  vFade = murk > 0.0 ? exp(-murk / uFogDepth) : 1.0;
   vNormalW = normalize(mat3(modelMatrix) * normal);
   vec4 w = modelMatrix * vec4(position, 1.0);
   vWorld = w.xyz;
@@ -24,6 +32,7 @@ uniform float uFogDepth;
 varying vec3 vColor;
 varying vec3 vNormalW;
 varying vec3 vWorld;
+flat varying float vFade;
 void main() {
   vec3 n = normalize(vNormalW);
   vec3 col = vColor * (0.62 + 0.38 * max(n.z, 0.0));
@@ -37,9 +46,10 @@ void main() {
     col += vec3(0.133, 0.827, 0.933) * min(l, 1.0) * max(dot(n, toLamp), 0.0) * 0.22;
   }
 
-  // Murky water: dimmer the deeper they sink.
+  // Murky water: dimmer the deeper they sink, and fading into the water
+  // rather than blocking its light (premultiplied).
   col *= exp(-max(-vWorld.z, 0.0) / uFogDepth);
-  gl_FragColor = vec4(col, 1.0);
+  gl_FragColor = vec4(col, vFade);
 }
 `
 

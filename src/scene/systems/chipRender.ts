@@ -3,6 +3,7 @@ import {
   BufferAttribute,
   BufferGeometry,
   CustomBlending,
+  LessEqualDepth,
   Mesh,
   OneFactor,
   OneMinusSrcAlphaFactor,
@@ -10,7 +11,7 @@ import {
   ShaderMaterial,
   WebGLRenderTarget,
 } from 'three'
-import { Bubble, Chip, Position, Rotation } from '../chips/components'
+import { Bubble, Chip, MAX_BUBBLES, Position, Rotation } from '../chips/components'
 import { chipGeometry } from '../chips/geometry'
 import { config } from '../config'
 import { bubbleFrag, bubbleVert, chipFrag, chipVert } from '../shaders/chips'
@@ -20,6 +21,11 @@ import type { System } from '../world'
  * Keeps a mesh for every chip and a point for every bubble in the deep, and
  * draws the deep (with anything else in it, like the specks) at full
  * resolution, antialiased, into world.chips.target.
+ *
+ * Chips in the clear water just under the surface are opaque. Deeper ones
+ * fade into the water, so they're drawn after those, farthest first, each
+ * laying down its own depth (so only its nearest faces show) and then
+ * blending over whatever is behind it, a farther chip included.
  */
 export function chipRenderSystem(): System {
   const geometries = new Map<string, BufferGeometry>()
@@ -29,11 +35,32 @@ export function chipRenderSystem(): System {
     vertexShader: chipVert,
     fragmentShader: chipFrag,
     vertexColors: true,
-    uniforms: { uFogDepth: { value: config.chips.fogDepth } },
+    uniforms: { uFogDepth: { value: config.chips.fogDepth }, uClear: { value: config.chips.clearDepth } },
+  })
+  // Fading chips: their depth first, then their colour over what's behind
+  // (premultiplied). The same program both times, so the depths match exactly.
+  const depthOnly = new ShaderMaterial({
+    vertexShader: chipVert,
+    fragmentShader: chipFrag,
+    vertexColors: true,
+    uniforms: material.uniforms,
+    colorWrite: false,
+    transparent: true,
+  })
+  const faded = new ShaderMaterial({
+    vertexShader: chipVert,
+    fragmentShader: chipFrag,
+    vertexColors: true,
+    uniforms: material.uniforms,
+    transparent: true,
+    depthWrite: false,
+    depthFunc: LessEqualDepth,
+    blending: CustomBlending,
+    blendSrc: OneFactor,
+    blendDst: OneMinusSrcAlphaFactor,
   })
 
   // Bubbles: one Points object, refilled from the bubble entities each frame.
-  const MAX_BUBBLES = 256
   const bubbleGeometry = new BufferGeometry()
   const bubblePos = new BufferAttribute(new Float32Array(MAX_BUBBLES * 3), 3)
   const bubbleFade = new BufferAttribute(new Float32Array(MAX_BUBBLES), 1)
@@ -85,17 +112,31 @@ export function chipRenderSystem(): System {
       if (!target) return
       const { scene, camera } = world.deep
       const live = new Set<number>()
+      const fading: Mesh[] = []
       for (const eid of query(world, [Chip, Position, Rotation])) {
         live.add(eid)
         let mesh = meshes.get(eid)
         if (!mesh) {
-          mesh = new Mesh(geometryFor(Chip.kind[eid]), material)
+          const geometry = geometryFor(Chip.kind[eid])
+          mesh = new Mesh(geometry, material)
+          mesh.add(new Mesh(geometry, depthOnly))
           meshes.set(eid, mesh)
           scene.add(mesh)
         }
         mesh.position.set(Position.x[eid], Position.y[eid], Position.z[eid])
         mesh.rotation.set(Rotation.x[eid], Rotation.y[eid], Rotation.z[eid])
+        // As the shader has it: below the clear layer, it fades.
+        const fade = -Position.z[eid] > config.chips.clearDepth
+        mesh.material = fade ? faded : material
+        mesh.children[0].visible = fade
+        if (fade) fading.push(mesh)
       }
+      // Farthest first, and before the specks and bubbles (render order 0).
+      fading.sort((a, b) => a.position.z - b.position.z)
+      fading.forEach((mesh, i) => {
+        mesh.children[0].renderOrder = 2 * (i - fading.length)
+        mesh.renderOrder = 2 * (i - fading.length) + 1
+      })
       for (const [eid, mesh] of meshes) {
         if (!live.has(eid)) {
           scene.remove(mesh)
@@ -124,6 +165,8 @@ export function chipRenderSystem(): System {
     dispose() {
       target?.dispose()
       material.dispose()
+      depthOnly.dispose()
+      faded.dispose()
       bubbleMaterial.dispose()
       bubbleGeometry.dispose()
       for (const g of geometries.values()) g.dispose()
