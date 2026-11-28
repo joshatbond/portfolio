@@ -18,7 +18,7 @@ function spawn(world: SceneWorld) {
   const { width: W, height: H, mobile } = world.viewport
   const layout = mobile ? C.mobile : C.desktop
   const at = layout.at as Record<string, readonly [number, number]>
-  const keys = site.stackChips.filter((k) => chipKeys.includes(k) && (!mobile || k in at))
+  const keys = world.capture && !world.capture.chips ? [] : site.stackChips.filter((k) => chipKeys.includes(k) && (!mobile || k in at))
   keys.forEach((key, i) => {
     const eid = addEntity(world)
     for (const t of terms) addComponent(world, eid, t)

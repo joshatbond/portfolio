@@ -38,6 +38,8 @@ export interface SceneContext {
   chips: { target: WebGLRenderTarget | null }
   /** Chip components, registered with the world. */
   components: typeof components
+  /** Rendering a still to save as an image: no deep text, no LEDs, chips optional. */
+  capture: { chips: boolean } | null
 }
 
 export type SceneWorld = World<SceneContext>
@@ -50,7 +52,7 @@ export interface System {
   dispose?(world: SceneWorld): void
 }
 
-export function createSceneWorld(gpu: SceneContext['gpu']): SceneWorld {
+export function createSceneWorld(gpu: SceneContext['gpu'], capture: SceneContext['capture'] = null): SceneWorld {
   return createWorld<SceneContext>({
     time: { delta: 0, elapsed: 0, then: performance.now() },
     viewport: { width: 1, height: 1, dpr: 1, mobile: false },
@@ -63,5 +65,6 @@ export function createSceneWorld(gpu: SceneContext['gpu']): SceneWorld {
     light: { target: null },
     chips: { target: null },
     components,
+    capture,
   })
 }

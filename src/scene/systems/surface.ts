@@ -27,6 +27,7 @@ export function surfaceSystem(): System {
         uRefract: { value: config.surface.refract },
         uEdgeFalloff: { value: Math.min(max, Math.max(min, Math.min(W, H) * ofShortSide)) },
         uPills: { value: pills },
+        uLed: { value: world.capture ? 0 : 1 },
       })
     },
     update(world) {

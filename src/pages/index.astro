@@ -42,7 +42,12 @@ const [first, ...rest] = site.name.split(' ')
     gl?.getExtension('WEBGL_lose_context')?.loseContext()
     return ok
   }
-  if (el && !saveData && !lowPower && canRun()) {
+  // ?capture=chips|empty renders a still for scripts/render-pool-still.mjs.
+  const capture = new URLSearchParams(location.search).get('capture')
+  if (el && capture) {
+    const { mountScene } = await import('../scene')
+    mountScene(el, { motion: false, capture: { chips: capture === 'chips' } })
+  } else if (el && !saveData && !lowPower && canRun()) {
     await document.fonts.ready
     const { mountScene } = await import('../scene')
     // Reduced motion: the Still frame, rendered once.

@@ -34,7 +34,7 @@ export function lightSystem(): System {
       const h = Math.max(1, Math.round(H * dpr * c.resolution))
       targets = [new WebGLRenderTarget(w, h, { depthBuffer: false }), new WebGLRenderTarget(w, h, { depthBuffer: false })]
       frame = 0
-      const abyss = drawAbyss()
+      const abyss = world.capture ? null : drawAbyss()
       nameTexture = abyss?.texture ?? null
       // The DOM rect, carried down to the deep text's depth.
       const rect = new Vector4(0, 0, 0, 0)

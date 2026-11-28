@@ -11,6 +11,7 @@ uniform vec2 uResolution;    // CSS px
 uniform float uRefract;
 uniform float uEdgeFalloff;  // px: how far in from the frame its reflections reach
 uniform vec4 uPills[2];      // x, y, w, h in CSS px (top-left origin)
+uniform float uLed;          // the frame's LEDs (off when capturing a still)
 varying vec2 vUv;
 
 float roundedBox(vec2 p, vec2 b, float r) {
@@ -58,8 +59,8 @@ void main() {
   // The LED strips in the frame: a hot core and its glow.
   float core = 1.0 - smoothstep(1.0, 2.5, dEdge);
   float glow = 0.95 * exp(-dEdge / 3.0) + 0.45 * exp(-dEdge / 11.0) + 0.25 * exp(-dEdge / 30.0);
-  col += vec3(0.65, 0.95, 0.99) * core * 0.95;
-  col += vec3(0.024, 0.714, 0.831) * glow * 0.42;
+  col += vec3(0.65, 0.95, 0.99) * core * 0.95 * uLed;
+  col += vec3(0.024, 0.714, 0.831) * glow * 0.42 * uLed;
 
   vec2 q = vUv - 0.5;
   col *= 1.0 - smoothstep(0.35, 0.75, length(q)) * 0.4;

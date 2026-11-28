@@ -17,13 +17,15 @@ export interface SceneOptions {
    * frame renders once (and again on resize) and the loop never runs.
    */
   motion?: boolean
+  /** Render a still to save as an image (scripts/render-pool-still.mjs). */
+  capture?: { chips: boolean }
 }
 
 /**
  * Mounts the homepage water into `container` and returns a function that
  * tears it down. Systems run in this order every frame.
  */
-export function mountScene(container: HTMLElement, { motion = true }: SceneOptions = {}): () => void {
+export function mountScene(container: HTMLElement, { motion = true, capture }: SceneOptions = {}): () => void {
   const renderer = new WebGLRenderer({ antialias: false, alpha: false, stencil: false, powerPreference: 'high-performance' })
   const dpr = Math.min(devicePixelRatio, config.view.maxPixelRatio)
   renderer.setPixelRatio(dpr)
@@ -32,7 +34,7 @@ export function mountScene(container: HTMLElement, { motion = true }: SceneOptio
   container.append(canvas)
 
   const quad = new FullscreenQuad()
-  const world = createSceneWorld({ renderer, quad })
+  const world = createSceneWorld({ renderer, quad }, capture ?? null)
   const systems: System[] = [
     timeSystem(),
     ...(motion ? [inputSystem()] : []),
@@ -44,31 +46,31 @@ export function mountScene(container: HTMLElement, { motion = true }: SceneOptio
     surfaceSystem(),
   ]
 
+  /** Re-sizes everything for the container; false when nothing changed. */
   const resize = () => {
     const width = container.clientWidth
     const height = container.clientHeight
-    if (width === world.viewport.width && height === world.viewport.height) return
+    if (width === world.viewport.width && height === world.viewport.height) return false
     const mobile = width < config.view.mobileBelow
     world.viewport = { width, height, dpr, mobile }
     world.view = { ...(mobile ? config.view.mobile : config.view.desktop) }
     renderer.setSize(width, height, false)
     for (const s of systems) s.resize?.(world)
+    return true
   }
-  let ready = false
+  const markReady = () => {
+    document.documentElement.dataset.scene = 'ready'
+  }
   const frame = () => {
     for (const s of systems) s.update(world)
-    if (!ready) {
-      ready = true
-      document.documentElement.dataset.scene = 'ready'
-    }
   }
   // Without motion: enough frames for the light to settle, then hold still.
   const still = () => {
     for (let i = 0; i < 40; i++) frame()
+    markReady()
   }
   const observer = new ResizeObserver(() => {
-    resize()
-    if (!motion) still()
+    if (resize() && !motion) still()
   })
   observer.observe(container)
   resize()
@@ -83,7 +85,14 @@ export function mountScene(container: HTMLElement, { motion = true }: SceneOptio
     }
   }
 
-  const loop = frame
+  let ready = false
+  const loop = () => {
+    frame()
+    if (!ready) {
+      ready = true
+      markReady()
+    }
+  }
   // Paused while the tab is hidden.
   const onVisibility = () => {
     world.time.then = performance.now()
