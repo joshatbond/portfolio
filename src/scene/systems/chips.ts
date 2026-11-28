@@ -2,6 +2,7 @@ import { addComponent, addEntity, query, removeEntity } from 'bitecs'
 import { site } from '../../config/site'
 import { Bob, Bubble, Chip, Home, Mode, Position, Rotation, State, Velocity } from '../chips/components'
 import { chipKeys } from '../chips/geometry'
+import { layoutHomes, type Box } from '../chips/layout'
 import { config } from '../config'
 import { random } from '../random'
 import { localRect, type SceneWorld, type System } from '../world'
@@ -14,6 +15,20 @@ const terms = [Chip, Position, Velocity, Rotation, Home, Bob, State]
 /** Screen-to-world scale at a depth below the surface. */
 const depthScale = (world: SceneWorld, depth: number) => (world.view.distance + depth) / world.view.distance
 
+/** The still's clearance (px) around a moved chip: from the text, pills, HUD and other chips. */
+const STILL_GAP = 16
+
+/** Elements' boxes in world px (y up), as they'd line up `depth` px below the surface. */
+function measure(world: SceneWorld, selectors: string[], depth = 0): Box[] {
+  const { width: W, height: H } = world.viewport
+  const k = depthScale(world, depth)
+  return selectors
+    .map((sel) => document.querySelector(sel))
+    .filter((el): el is Element => Boolean(el))
+    .map((el) => localRect(world, el))
+    .map((r) => ({ x0: (r.left - W / 2) * k, x1: (r.right - W / 2) * k, y0: (H / 2 - r.bottom) * k, y1: (H / 2 - r.top) * k }))
+}
+
 function spawn(world: SceneWorld) {
   for (const eid of query(world, [Chip])) removeEntity(world, eid)
   for (const eid of query(world, [Bubble])) removeEntity(world, eid)
@@ -21,14 +36,25 @@ function spawn(world: SceneWorld) {
   const layout = mobile ? C.mobile : C.desktop
   const at = layout.at as Record<string, readonly [number, number]>
   const keys = world.capture && !world.capture.chips ? [] : site.stackChips.filter((k) => chipKeys.includes(k) && (!mobile || k in at))
+  // Figma positions (top-left of the 64px chip), scaled to this window, then
+  // moved off the name, title and pills where they'd cover them.
+  const figma = keys.map((key, i) => {
+    const [fx, fy] = at[key] ?? [layout.frame[0] * (0.15 + 0.7 * ((i * 0.618) % 1)), layout.frame[1] * 0.15]
+    return { x: ((fx + C.size / 2) / layout.frame[0] - 0.5) * W, y: (0.5 - (fy + C.size / 2) / layout.frame[1]) * H }
+  })
+  const scale = depthScale(world, C.surfaceDepth)
+  const homes = layoutHomes(figma, measure(world, ['.abyss', '.pills'], C.surfaceDepth), {
+    frame: { x0: (-W / 2) * scale, y0: (-H / 2) * scale, x1: (W / 2) * scale, y1: (H / 2) * scale },
+    size: C.size,
+    gap: STILL_GAP,
+    clear: measure(world, ['.hud', '.hint'], C.surfaceDepth),
+  })
   keys.forEach((key, i) => {
     const eid = addEntity(world)
     for (const t of terms) addComponent(world, eid, t)
     Chip.kind[eid] = key
-    // Figma position (top-left of the 64px chip), scaled to this window.
-    const [fx, fy] = at[key] ?? [layout.frame[0] * (0.15 + 0.7 * ((i * 0.618) % 1)), layout.frame[1] * 0.15]
-    Home.x[eid] = ((fx + C.size / 2) / layout.frame[0] - 0.5) * W
-    Home.y[eid] = (0.5 - (fy + C.size / 2) / layout.frame[1]) * H
+    Home.x[eid] = homes[i].x
+    Home.y[eid] = homes[i].y
     Position.x[eid] = Home.x[eid]
     Position.y[eid] = Home.y[eid]
     Position.z[eid] = -C.surfaceDepth
@@ -256,12 +282,7 @@ export function chipsSystem(): System {
     resize(world) {
       spawn(world)
       // What the school keeps clear of, in world px at the surface.
-      const { width: W, height: H } = world.viewport
-      world.keepOut = ['.abyss', '.pills']
-        .map((sel) => document.querySelector(sel))
-        .filter((el): el is Element => Boolean(el))
-        .map((el) => localRect(world, el))
-        .map((r) => ({ x0: r.left - W / 2, x1: r.right - W / 2, y0: H / 2 - r.bottom, y1: H / 2 - r.top }))
+      world.keepOut = measure(world, ['.abyss', '.pills'])
     },
     update(world) {
       const dt = world.time.delta
