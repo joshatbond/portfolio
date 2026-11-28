@@ -72,13 +72,20 @@ const ogImageUrl = new URL(ogImage, site.url).href
     <Font cssVariable="--font-mono" preload />
     <slot name="head" />
     <script is:inline>
-      // The nav rim holds still between pages (view-transition-name: rim). If
-      // it has scrolled out of view, let it fade with the page instead of
-      // sliding in from above.
-      addEventListener('pageswap', (event) => {
-        const rim = document.querySelector('.rim')
-        if (event.viewTransition && rim && rim.getBoundingClientRect().bottom < 0) rim.style.viewTransitionName = 'none'
-      })
+      // Shared elements (the nav rim, the Dice Augur title) morph between
+      // pages. One that's out of view on either side would fly in from off
+      // screen, so for that transition it just fades with the page instead.
+      // Checked on both sides, and reset each time (pages restored from the
+      // back-forward cache keep their inline styles).
+      const settle = (event) => {
+        for (const el of document.querySelectorAll('[data-vt-visible]')) {
+          const r = el.getBoundingClientRect()
+          const out = r.bottom < 0 || r.top > innerHeight
+          el.style.viewTransitionName = event.viewTransition && out ? 'none' : ''
+        }
+      }
+      addEventListener('pageswap', settle)
+      addEventListener('pagereveal', settle)
     </script>
   </head>
   <body class={bodyClass}>

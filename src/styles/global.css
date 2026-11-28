@@ -294,23 +294,23 @@ ol {
     animation: vt-fade-out 160ms ease both;
   }
 
-  ::view-transition-new(cs-eyebrow) {
+  ::view-transition-new(cs-eyebrow):only-child {
     animation-delay: 140ms;
   }
 
-  ::view-transition-new(cs-lede) {
+  ::view-transition-new(cs-lede):only-child {
     animation-delay: 200ms;
   }
 
-  ::view-transition-new(cs-actions) {
+  ::view-transition-new(cs-actions):only-child {
     animation-delay: 260ms;
   }
 
-  ::view-transition-new(cs-facts) {
+  ::view-transition-new(cs-facts):only-child {
     animation-delay: 320ms;
   }
 
-  ::view-transition-new(cs-hero) {
+  ::view-transition-new(cs-hero):only-child {
     animation-delay: 380ms;
   }
 }

@@ -91,7 +91,7 @@ const figureSizes = '(min-width: 1280px) 815px, (min-width: 1024px) calc((100vw 
             <span class="t-eyebrow">Case study · Personal<span class="wide-only"> · Full-stack</span></span>
             <Status state="live">Live</Status>
           </p>
-          <h1 class="t-display-xl cs-title">{diceAugur.title}</h1>
+          <h1 class="t-display-xl cs-title" data-vt-visible>{diceAugur.title}</h1>
           <p class="t-body-l lede vt-stagger vt-lede">
             A campaign notebook for tabletop games. It keeps a world’s places, people and plot in one connected place, with
             the dice, soundboard and timer a game master reaches for mid-session. I designed and built all of it, and it’s
@@ -307,7 +307,7 @@ const figureSizes = '(min-width: 1280px) 815px, (min-width: 1024px) calc((100vw 
     <ul class="cards" aria-label="The four pieces" tabindex="0">
       {
         cards.map((card) => (
-          <li class="card">
+          <li class="card" data-marker-label={card.title}>
             <h3 class="t-heading-s">{card.title}</h3>
             <p class="t-body-s card-body">{card.body}</p>
           </li>
@@ -430,7 +430,6 @@ const figureSizes = '(min-width: 1280px) 815px, (min-width: 1024px) calc((100vw 
     margin: 0;
   }
 
-  .hero-image :global(img),
   :global(img.hero-image) {
     width: 100%;
     border: 1px solid var(--border-subtle);
@@ -653,7 +652,8 @@ const figureSizes = '(min-width: 1280px) 815px, (min-width: 1024px) calc((100vw 
   }
 
   .card::scroll-marker {
-    content: '';
+    /* Each dot is named after its card for screen readers. */
+    content: '' / attr(data-marker-label);
     width: 6px;
     height: 6px;
     border-radius: var(--radius-full);
@@ -661,6 +661,11 @@ const figureSizes = '(min-width: 1280px) 815px, (min-width: 1024px) calc((100vw 
     transition:
       width 200ms ease,
       background 200ms ease;
+  }
+
+  .card::scroll-marker:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-offset);
   }
 
   .card::scroll-marker:target-current {
@@ -728,7 +733,6 @@ const figureSizes = '(min-width: 1280px) 815px, (min-width: 1024px) calc((100vw 
       justify-content: center;
     }
 
-    .hero-image :global(img),
     :global(img.hero-image) {
       border-radius: 18px;
     }
