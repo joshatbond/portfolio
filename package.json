@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "sh scripts/slot.sh astro build",
+    "build": "sh scripts/slot.sh astro build && node scripts/write-headers.mjs",
     "preview": "astro preview",
     "check": "sh scripts/slot.sh astro check",
     "check:nda": "node scripts/check-nda.mjs",
@@ -16,7 +16,8 @@
     "screenshot": "node scripts/screenshot.mjs",
     "astro": "astro",
     "check:a11y": "node scripts/check-a11y.mjs",
-    "check:scene-text": "node scripts/check-scene-text.mjs"
+    "check:scene-text": "node scripts/check-scene-text.mjs",
+    "deploy": "pnpm run build && pnpm dlx wrangler@4.168.0 deploy"
   },
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",
