@@ -1,0 +1,94 @@
+---
+/**
+ * The pool as a static still, in CSS. The viewport is a window frame with LED
+ * strips in it, over dark, murky water that carries on past every edge: the
+ * LEDs' light falls into the water as soft shafts and fades into the deep.
+ *
+ * It's the first paint, and what the WebGL scene fades in over, so it keeps
+ * to the same look. (The scene's own pre-rendered still replaces it where
+ * WebGL can't run.)
+ */
+
+// Motes drifting in the mid-water: a fixed scatter.
+let seed = 20261127
+const rand = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296)
+const motes = Array.from({ length: 36 }, () => {
+  const x = (8 + rand() * 84).toFixed(2)
+  const y = (8 + rand() * 84).toFixed(2)
+  const a = (0.1 + rand() * 0.2).toFixed(2)
+  const r = rand() < 0.2 ? 1.5 : 1
+  return `radial-gradient(${r}px ${r}px at ${x}% ${y}%, rgb(207 250 254 / ${a}), transparent)`
+}).join(',')
+---
+
+<div class="tub" style={`--motes: ${motes}`} aria-hidden="true">
+  <div class="light"></div>
+  <div class="shafts"></div>
+  <div class="motes"></div>
+  <slot />
+  <div class="vignette"></div>
+  <div class="rim"></div>
+  <div class="rim-top" data-vt-visible></div>
+</div>
+
+<style>
+  .tub {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: var(--pool-deep);
+  }
+
+  .tub > * {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  /* The LEDs' light in the murky water, strongest at the frame and swallowed
+     within a fraction of the window. */
+  .light {
+    box-shadow:
+      inset 0 0 2vmin rgb(34 211 238 / 0.35),
+      inset 0 0 12vmin rgb(8 145 178 / 0.6),
+      inset 0 0 28vmin rgb(6 182 212 / 0.4),
+      inset 0 0 48vmin rgb(8 145 178 / 0.2);
+  }
+
+  /* Shafts where the moving surface bent the light, fanning in from the
+     frame; two spacings so they don't read as a regular burst. */
+  .shafts {
+    background:
+      repeating-conic-gradient(from 3deg at 50% 50%, rgb(34 211 238 / 0.06) 0deg 0.7deg, transparent 0.7deg 2.9deg),
+      repeating-conic-gradient(from 1deg at 50% 50%, rgb(34 211 238 / 0.05) 0deg 1.3deg, transparent 1.3deg 5.3deg);
+    -webkit-mask-image: radial-gradient(closest-side, transparent 62%, rgb(0 0 0 / 0.8) 100%, #000 125%);
+    mask-image: radial-gradient(closest-side, transparent 62%, rgb(0 0 0 / 0.8) 100%, #000 125%);
+    filter: blur(0.6px);
+  }
+
+  .motes {
+    background: var(--motes);
+  }
+
+  .vignette {
+    background: radial-gradient(farthest-corner, rgb(0 0 0 / 0) 55%, rgb(0 0 0 / 0.35));
+  }
+
+  /* The LED strips in the window frame. */
+  .rim {
+    border: 2px solid rgb(165 243 252 / 0.95);
+    box-shadow:
+      inset 0 0 6px rgb(34 211 238 / 0.95),
+      inset 0 0 22px rgb(6 182 212 / 0.6),
+      0 0 6px rgb(34 211 238 / 0.95);
+  }
+
+  /* Only the frame's top edge is shared with the inner pages' nav rim, so it
+     holds still between them while the rest of the frame fades. */
+  .rim-top {
+    inset: 0 0 auto;
+    height: 2px;
+    background: rgb(165 243 252 / 0.95);
+    view-transition-name: rim;
+  }
+</style>

@@ -1,0 +1,187 @@
+---
+/**
+ * Full-screen pool pages (homepage and 404): the tub fills the viewport, the
+ * DOM text and pills sit over it, and the HUD rides on top. Pages put their
+ * deep-water text and actions in the default slot; the homepage adds the
+ * WebGL scene in the `scene` slot (step 4), above the still.
+ */
+import BaseLayout from './BaseLayout.astro'
+import PoolStill from '../components/PoolStill.astro'
+import IconButton from '../components/IconButton.astro'
+import Icon from '../components/Icon.astro'
+import StatusChip from '../components/StatusChip.astro'
+import { site } from '../config/site'
+
+interface Props {
+  title?: string
+  description?: string
+  ogImage?: string
+  ogImageAlt?: string
+  index?: boolean
+  /** Show the "Open to work" chip (homepage only). */
+  status?: boolean
+  /** Show the "stir the water" hint (homepage only). */
+  hint?: boolean
+}
+
+const { status = false, hint = false, ...meta } = Astro.props
+---
+
+<BaseLayout {...meta} bodyClass="pool-page">
+  <div class="pool">
+    <PoolStill>
+      <slot name="still" />
+    </PoolStill>
+    <slot name="scene" />
+    <main class:list={['surface', { 'surface--no-hint': !hint }]}>
+      <slot />
+      {
+        hint && (
+          <p class="hint">
+            <Icon name="waves" size={16} />
+            <span class="hint-fine">Move to stir the water</span>
+            <span class="hint-touch">Tap the water</span>
+          </p>
+        )
+      }
+    </main>
+    <aside class="hud" aria-label="Status and links">
+      {status && <StatusChip />}
+      <ul class="hud-links" aria-label="Elsewhere">
+        <li><IconButton href={site.links.github} icon="github" label="GitHub" external class="hud-button" /></li>
+        <li><IconButton href={site.links.linkedin} icon="linkedin" label="LinkedIn" external class="hud-button" /></li>
+        <li><IconButton href={`mailto:${site.links.email}`} icon="mail" label="Email" class="hud-button" /></li>
+      </ul>
+    </aside>
+  </div>
+</BaseLayout>
+
+<style>
+  .pool {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    min-height: 100svh;
+    overflow: hidden;
+  }
+
+  /* Deep-water text and pills: centred, sitting low in the tub as drawn
+     (the pills end ~11% above the bottom edge on desktop, ~15% on phones). */
+  .surface {
+    position: relative;
+    grid-area: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 96px var(--gutter) max(14.8svh, 88px);
+    text-align: center;
+  }
+
+  /* Without the hint below them, phones anchor the pills near the bottom. */
+  .surface--no-hint {
+    padding-bottom: max(5.2svh, 32px);
+  }
+
+  .hud {
+    position: absolute;
+    inset: 20px 20px auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-3);
+    pointer-events: none;
+  }
+
+  .hud > :global(*) {
+    pointer-events: auto;
+  }
+
+  .hud :global(.status-chip) {
+    margin-top: 4px;
+  }
+
+  .hud-links {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+  }
+
+  .hud :global(.hud-button) {
+    padding: 10px;
+  }
+
+  .hud :global(.hud-button .icon) {
+    width: 16px;
+    height: 16px;
+  }
+
+  .hint {
+    position: absolute;
+    left: 50%;
+    bottom: 34px;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-secondary);
+    font: 400 12px/16px var(--font-mono);
+    white-space: nowrap;
+    transform: translateX(-50%);
+  }
+
+  /* The hint's wording follows the input, not the screen size. */
+  .hint-touch {
+    display: none;
+  }
+
+  @media (hover: none), (pointer: coarse) {
+    .hint-fine {
+      display: none;
+    }
+
+    .hint-touch {
+      display: inline;
+    }
+  }
+
+  @media (min-width: 720px) {
+    .surface,
+    .surface--no-hint {
+      padding-bottom: max(11.3svh, 72px);
+    }
+
+    .hud {
+      inset: 30px 40px auto;
+    }
+
+    .hud :global(.status-chip) {
+      margin-top: 6px;
+    }
+
+    .hud-links {
+      gap: 10px;
+    }
+
+    .hud :global(.hud-button) {
+      padding: 12px;
+    }
+
+    .hud :global(.hud-button .icon) {
+      width: 18px;
+      height: 18px;
+    }
+
+    .hint {
+      left: auto;
+      right: 40px;
+      bottom: 40px;
+      gap: 10px;
+      transform: none;
+    }
+
+    .hint :global(.icon) {
+      width: 18px;
+      height: 18px;
+    }
+  }
+</style>
