@@ -199,6 +199,8 @@ for (const width of WIDTHS) {
         if (!el || !node.textContent.trim() || el.closest('a, button, script, style, .visually-hidden')) continue
         const style = getComputedStyle(el)
         if (style.visibility === 'hidden' || Number(style.opacity) === 0) continue
+        // Not painted (e.g. the homepage name once the water scene draws it).
+        if (/^rgba\(.*,\s*0\)$|transparent/.test(style.color)) continue
         window.__texts.push(node)
       }
       return window.__texts.map((node) => ({ color: getComputedStyle(node.parentElement).color, text: node.textContent.trim().slice(0, 40) }))

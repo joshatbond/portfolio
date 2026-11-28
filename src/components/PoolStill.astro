@@ -4,10 +4,26 @@
  * strips in it, over dark, murky water that carries on past every edge: the
  * LEDs' light falls into the water as soft shafts and fades into the deep.
  *
- * It's the first paint, and what the WebGL scene fades in over, so it keeps
- * to the same look. (The scene's own pre-rendered still replaces it where
- * WebGL can't run.)
+ * It's the first paint, and what the WebGL scene fades in over. On top of the
+ * CSS light sits a pre-rendered still of the scene itself
+ * (scripts/render-pool-still.mjs), which is all that shows where the scene
+ * can't run: no WebGL, Save-Data, low-power devices.
  */
+import { getImage } from 'astro:assets'
+import desktopChips from '../assets/pool/still-desktop.webp'
+import mobileChips from '../assets/pool/still-mobile.webp'
+import desktopEmpty from '../assets/pool/still-empty-desktop.webp'
+import mobileEmpty from '../assets/pool/still-empty-mobile.webp'
+
+interface Props {
+  /** The stack chips at the surface (homepage) or empty water (404). */
+  variant?: 'chips' | 'empty'
+}
+
+const { variant = 'chips' } = Astro.props
+const [desktop, mobile] = await Promise.all(
+  (variant === 'chips' ? [desktopChips, mobileChips] : [desktopEmpty, mobileEmpty]).map((src) => getImage({ src, format: 'webp' })),
+)
 
 // Motes drifting in the mid-water: a fixed scatter.
 let seed = 20261127
@@ -24,6 +40,10 @@ const motes = Array.from({ length: 36 }, () => {
 <div class="tub" style={`--motes: ${motes}`} aria-hidden="true">
   <div class="light"></div>
   <div class="shafts"></div>
+  <picture class="render">
+    <source media="(max-width: 719.98px)" srcset={mobile.src} />
+    <img src={desktop.src} alt="" decoding="async" />
+  </picture>
   <div class="motes"></div>
   <slot />
   <div class="vignette"></div>
@@ -64,6 +84,12 @@ const motes = Array.from({ length: 36 }, () => {
     -webkit-mask-image: radial-gradient(closest-side, transparent 62%, rgb(0 0 0 / 0.8) 100%, #000 125%);
     mask-image: radial-gradient(closest-side, transparent 62%, rgb(0 0 0 / 0.8) 100%, #000 125%);
     filter: blur(0.6px);
+  }
+
+  .render img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   .motes {
