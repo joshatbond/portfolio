@@ -15,7 +15,7 @@ export interface SceneContext {
   time: { delta: number; elapsed: number; then: number }
   viewport: { width: number; height: number; dpr: number; mobile: boolean }
   /** Camera distance and the depth of the deep text, for this viewport. */
-  view: { distance: number; nameDepth: number }
+  view: { distance: number }
   input: {
     /** Pointer positions since the last frame, in screen uv. */
     moves: { x: number; y: number }[]
@@ -88,7 +88,7 @@ export function createSceneWorld(
   return createWorld<SceneContext>({
     time: { delta: 0, elapsed: 0, then: performance.now() },
     viewport: { width: 1, height: 1, dpr: 1, mobile: false },
-    view: { distance: 1240, nameDepth: 1100 },
+    view: { distance: 1240 },
     input: { moves: [], presses: [], last: null, lastAt: 0, contact: null, stroke: null, press: null },
     keepOut: [],
     drops: [],

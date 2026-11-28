@@ -9,8 +9,8 @@
 export const config = {
   view: {
     /** Camera distance above the water (px). The deep text shows at ~half scale. */
-    desktop: { distance: 1240, nameDepth: 1100 },
-    mobile: { distance: 865, nameDepth: 900 },
+    desktop: { distance: 1240 },
+    mobile: { distance: 865 },
     /** Narrower than this uses the mobile view. */
     mobileBelow: 720,
     maxPixelRatio: 1.5,
@@ -134,7 +134,7 @@ export const config = {
   surface: {
     /** Screen-space refraction of everything below. */
     refract: 0.02,
-    glint: { slope: [0.008, 0.04] as [number, number], midWater: 0.6, strength: 0.55 },
+    glint: { slope: [0.008, 0.04] as [number, number], strength: 0.55 },
   },
 
   /** The name and title in the deep: pool/paint seen through the water. */
