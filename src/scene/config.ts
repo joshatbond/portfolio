@@ -44,6 +44,11 @@ export const config = {
     steps: { desktop: 28, mobile: 20 },
     /** How far below the surface the volume is marched (px). */
     maxDepth: 1100,
+    /**
+     * Distances below are for a window whose short side is `referenceSide`
+     * px; they scale with the window so the light keeps to the frame on phones.
+     */
+    referenceSide: 900,
     /** Only frame strips within this distance light a sample (px). */
     reach: 460,
     /** The LEDs sit this far above the water, in the frame (px). */

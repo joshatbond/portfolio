@@ -45,6 +45,8 @@ export function lightSystem(): System {
         const cy = (H / 2 - (r.y + r.height / 2)) * k
         rect.set(cx - (r.width * k) / 2, cy - (r.height * k) / 2, cx + (r.width * k) / 2, cy + (r.height * k) / 2)
       }
+      // Keep the light to the frame whatever the window's size.
+      const scale = Math.min(W, H) / c.referenceSide
       material = pass(lightFrag, {
         tCurv: { value: null },
         tPrev: { value: null },
@@ -57,13 +59,14 @@ export function lightSystem(): System {
         uSimScale: { value: 1 },
         uCamZ: { value: P },
         uMaxDepth: { value: c.maxDepth },
-        uReach: { value: c.reach },
+        uReach: { value: c.reach * scale },
         uLedHeight: { value: c.ledHeight },
         uLobe: { value: c.lobe },
-        uLensGain: { value: c.lensGain },
-        uExtinction: { value: c.extinction },
-        uFalloff: { value: c.falloff },
-        uIntensity: { value: c.intensity },
+        // Shorter paths scatter and focus less; keep the frame as bright and streaky.
+        uLensGain: { value: c.lensGain / scale },
+        uExtinction: { value: c.extinction / scale },
+        uFalloff: { value: c.falloff / scale },
+        uIntensity: { value: c.intensity / scale },
         uSeed: { value: 0 },
       })
       material.defines = { STEPS: mobile ? c.steps.mobile : c.steps.desktop }
