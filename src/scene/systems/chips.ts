@@ -319,6 +319,7 @@ function steer(world: SceneWorld, eid: number, school: number[], s: number, full
       sy -= (dy / d) * w
       sz -= (dz / d) * w
     }
+    if (!full) continue
     if (d < S.alignment * s) {
       ax += Math.cos(Fish.heading[o])
       ay += Math.sin(Fish.heading[o])
@@ -365,9 +366,9 @@ function steer(world: SceneWorld, eid: number, school: number[], s: number, full
   return { x: fx, y: fy, z: clamp(fz, -1, 1) }
 }
 
-/** How many of the fish, besides `eid`, are making for a depth where they can be seen. */
+/** How many of the fish, besides `eid`, can be seen and are staying where they can. */
 const inSight = (school: number[], eid: number) =>
-  school.filter((o) => o !== eid && Fish.depth[o] < S.depth.visibleDepth).length
+  school.filter((o) => o !== eid && -Position.z[o] < S.depth.visibleDepth && Fish.depth[o] < S.depth.visibleDepth).length
 
 /** A new depth for a fish: mostly shallow, and shallow for sure while too few others would be seen. */
 function newDepth(school: number[], eid: number) {
@@ -410,6 +411,12 @@ function swim(world: SceneWorld, eid: number, school: number[], dt: number, s: n
   } else {
     // Burst and glide: a short, hard kick, aimed, then a long coast.
     let v = Math.hypot(Velocity.x[eid], Velocity.y[eid], Velocity.z[eid])
+    const fleeing = Fish.flee[eid] > 0
+    if (fleeing) {
+      Fish.flee[eid] -= dt
+      // Diving away from a press: down to the depth it dived for, then level.
+      if (depth >= Fish.depth[eid]) Fish.pitchTo[eid] = Math.max(Fish.pitchTo[eid], 0)
+    }
     const kick = Fish.kick[eid]
     if (kick > 0) {
       Fish.kick[eid] = kick - dt
@@ -421,14 +428,16 @@ function swim(world: SceneWorld, eid: number, school: number[], dt: number, s: n
     } else {
       const drift = pace * S.kick.drift
       v = drift + (v - drift) * Math.exp(-dt / S.kick.coast)
-      if (Fish.flee[eid] > 0) Fish.flee[eid] -= dt
+      const level = 1 - Math.exp(-S.level * dt)
+      if (fleeing) Fish.pitch[eid] -= Fish.pitch[eid] * (depth >= Fish.depth[eid] ? 1 - Math.exp(-8 * dt) : level)
       else {
-        // Holding its line, only easing clear of the others and back into its water.
+        // Holding its line, only easing clear of the others (up or down too)
+        // and back into its water, and levelling out.
         const f = steer(world, eid, school, s, false)
         Fish.heading[eid] = before + turn(before, Math.atan2(f.y, f.x)) * (1 - Math.exp(-S.agility.glide * dt))
+        Fish.pitch[eid] += (f.z * S.climb * 0.5 - Fish.pitch[eid]) * level
         Fish.kick[eid] = kick + dt
       }
-      Fish.pitch[eid] *= Math.exp(-S.level * dt)
       if (Fish.kick[eid] >= 0) {
         // The next kick, aimed where it wants to go, a swerve off that, and up or down.
         const f = steer(world, eid, school, s, true)
