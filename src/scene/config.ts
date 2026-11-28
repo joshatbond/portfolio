@@ -188,26 +188,36 @@ export const config = {
     surfaceDepth: 14,
     bob: { amplitude: [2, 4], rock: 10 },
     /**
-     * Swimming, like fish: in small schools, burst and glide. Each fish has
-     * its own pace (px/s). A kick of about `kick.length` s takes it up to
-     * `kick.boost`× its pace (each kick up to `kick.vary` stronger or
-     * weaker); then it glides, coasting down toward `kick.drift`× its pace
-     * (losing e⁻¹ of the difference every `kick.coast` s), until it kicks
-     * again. A school's kicks come every `kick.glide` s, a new interval each
-     * time; a fish on its own glides that long between its own.
-     *
-     * It turns on its kicks: quickly (`agility.kick` per s) toward where it
-     * wants to go, swerving up to `swerve` rad off that (much less when it
-     * follows its school), and climbing or diving at up to `climb` rad.
-     * Gliding, it holds its line (`agility.glide`) and levels out (`level`
+     * Swimming, like fish, in small schools: each school cruises smoothly
+     * at a pace of its own, its fish matching its speed and heading, and
+     * now and then speeds up or eases off, all its fish together. A fish
+     * turns smoothly toward where it wants to go and climbs or dives at up
+     * to `cruise.dive`× `climb` rad; after a dart it levels out (`level`
      * per s). Every fish keeps `separation` px from the others; nothing
      * roams more than `roam` (share of the window) past its edges.
      */
     swim: {
-      pace: [60, 90] as [number, number],
-      kick: { length: 0.28, boost: 2.8, vary: 0.25, glide: [1.4, 3.8] as [number, number], coast: 1, drift: 0.25 },
-      agility: { kick: 12, glide: 0.35 },
-      swerve: 0.6,
+      cruise: {
+        /** A school's cruising pace (px/s), picked as it forms: some slow, some quicker. */
+        pace: [50, 115] as [number, number],
+        /** Each fish swims up to this much faster or slower than its school. */
+        vary: 0.03,
+        /** How quickly a fish takes up its school's speed (per s). */
+        follow: 1,
+        /** Every `every` s a school picks a new speed, `surge`× its pace, and eases to it over `ramp` s. */
+        every: [4, 10] as [number, number],
+        surge: [0.75, 1.35] as [number, number],
+        ramp: [1.5, 3] as [number, number],
+        /** A fish fallen behind its school's middle swims up to this much faster to catch up, one ahead as much slower. */
+        keep: 0.15,
+        /** Turning toward where it wants to go (per s), at most `maxTurn` rad/s. */
+        turn: 1.5,
+        maxTurn: 1.6,
+        /** Climbing or diving at up to this share of `climb`. */
+        dive: 0.6,
+        /** A school weaves a little on its way: up to `angle` rad off it, over about `period` s. */
+        weave: { angle: 0.45, period: [7, 13] as [number, number] },
+      },
       climb: 0.75,
       level: 0.5,
       /**
@@ -227,21 +237,19 @@ export const config = {
       },
       /**
        * Small schools: they swim in `size` fish to a school and take in fish
-       * up to `most`. A school kicks together, each fish `lag` s after the
-       * one before; its fish swim its way (`align`) and
+       * up to `most`. Its fish swim its way (`align`) and
        * keep together (`cohere`, to its middle, per `cohesion` px off it).
        * Schools keep about `spacing` (share of the window's width) apart,
        * each heading (`travel`) for a spot in open water away from the
        * others, a new one when it gets there or every `wander` s. A
        * fish on its own (once a press has broken its school up) looks for
        * company after `regroup` s: it swims toward the nearest school with
-       * room, or another fish on its own (kicking `chase`× as hard and as
-       * often), and joins it within `join` px.
+       * room, or another fish on its own (swimming `chase`× as fast), and
+       * joins it within `join` px.
        */
       school: {
         size: [2, 4] as [number, number],
         most: 5,
-        lag: [0.03, 0.1] as [number, number],
         align: 1,
         cohere: 1.4,
         cohesion: 220,
@@ -301,13 +309,23 @@ export const config = {
     /**
      * A press breaks up every school whose middle is within `radius` px of
      * it, seen at the surface (each px of depth counting as `depth` px
-     * further off), and startles fish on their own that near: each kicks
-     * away, from the press and from its school's middle, at up to `speed`
-     * px/s, diving about `dive` px, and glides on without turning back for
-     * about `time` s; the shallow ones loose a few bubbles. Schools further
-     * off carry on.
+     * further off), and startles fish on their own that near: each darts
+     * away, from the press and from its school's middle, in a kick of
+     * `kick` s up to `speed` px/s (turning at `agility` per s), diving
+     * about `dive` px, and coasts on (losing e⁻¹ of its extra speed every
+     * `coast` s) without turning back for about `time` s; the shallow ones
+     * loose a few bubbles. Schools further off carry on.
      */
-    scatter: { radius: 200, depth: 0.35, speed: [480, 680] as [number, number], dive: 180, time: 1.1 },
+    scatter: {
+      radius: 200,
+      depth: 0.35,
+      speed: [480, 680] as [number, number],
+      kick: 0.39,
+      agility: 12,
+      coast: 1,
+      dive: 180,
+      time: 1.1,
+    },
     bubbles: {
       /** Up to this many from a startled fish, fewer the deeper it is, none below `from` px. */
       perDart: 6,
