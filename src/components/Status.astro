@@ -1,0 +1,45 @@
+---
+/** Project status (Figma "Project status" set: Live / Retired). */
+interface Props {
+  state: 'live' | 'retired'
+}
+const { state } = Astro.props
+---
+
+<span class:list={['status', `status--${state}`, 't-tag']}>
+  <span class="dot" aria-hidden="true"></span>
+  <slot />
+</span>
+
+<style>
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: var(--radius-full);
+  }
+
+  .status--live {
+    color: var(--text-primary);
+  }
+
+  .status--live .dot {
+    background: var(--status-available);
+    box-shadow: 0 0 6px rgb(74 222 128 / 0.6);
+  }
+
+  .status--retired {
+    color: var(--text-tertiary-lit);
+  }
+
+  .status--retired .dot {
+    border: 1.25px solid var(--text-tertiary);
+  }
+</style>

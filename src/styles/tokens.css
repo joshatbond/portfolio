@@ -19,7 +19,7 @@
   /* Muted text on lit surfaces (panels, the surface-light band), where the
      plain tokens drop below their contrast minimum on the rendered pixels:
      4.57:1 for text (tertiary on pool/deep) and 7:1 for link labels. */
-  --text-tertiary-lit: color-mix(in srgb, var(--text-tertiary) 50%, var(--text-secondary));
+  --text-tertiary-lit: color-mix(in srgb, var(--text-tertiary) 30%, var(--text-secondary));
   --text-secondary-lit: color-mix(in srgb, var(--text-secondary) 70%, var(--text-primary));
   --text-on-accent: #112227;
   --text-accent: #67e8f9;

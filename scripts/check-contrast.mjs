@@ -121,6 +121,8 @@ for (const width of WIDTHS) {
         await page.mouse.move(0, 0)
         await page.evaluate(() => document.activeElement instanceof HTMLElement && document.activeElement.blur())
         const target = await page.evaluateHandle((k) => window.__labels[k], i)
+        // Not rendered at this width (e.g. the case study's menu on phones).
+        if (!(await target.evaluate((n) => n.getClientRects().length > 0))) continue
         await target.evaluate((n) => n.scrollIntoView({ block: 'center', inline: 'nearest' }))
         const name = await target.evaluate((n) => n.innerText.trim().split('\n')[0].slice(0, 40))
         if (state === 'hover') {

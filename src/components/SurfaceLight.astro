@@ -5,8 +5,7 @@
  * band, and a soft cyan radial glow under the nav. It's a decorative layer;
  * PageLayout places it across the nav and page-header rows.
  */
-import { getImage } from 'astro:assets'
-import caustics from '../assets/textures/caustics-cyan.png'
+import { causticsUrl } from '../lib/caustics'
 
 interface Props {
   /** Caustics opacity (Figma uses 0.07–0.08). */
@@ -17,10 +16,8 @@ interface Props {
 }
 
 const { opacity = 0.08, glow = { y: '0%', rx: '70%', ry: '60%', alpha: 0.2 }, class: className } = Astro.props
-// Shown at 512 CSS px and ~8% opacity, so a 640px, lower-quality tile is indistinguishable.
-const tile = await getImage({ src: caustics, format: 'webp', width: 640, quality: 60 })
 const style = [
-  `--caustics: url(${tile.src})`,
+  `--caustics: url(${await causticsUrl()})`,
   `--caustics-opacity: ${opacity}`,
   `--glow: radial-gradient(${glow.rx} ${glow.ry} at 50% ${glow.y}, rgb(6 182 212 / ${glow.alpha}), rgb(6 182 212 / 0))`,
 ].join(';')

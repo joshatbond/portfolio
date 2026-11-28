@@ -109,6 +109,18 @@ ol {
   transform: none;
 }
 
+/* Labels the mobile frames drop visually but screen readers still need. */
+@media (max-width: 719.98px) {
+  .sr-only-narrow {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
 /* Copy that the mobile frames shorten: render both, show one. The hide wins
    over any component display rule; elsewhere the element keeps its own. */
 @media (max-width: 719.98px) {
@@ -263,6 +275,57 @@ ol {
 /* ---------- View transitions ---------- */
 @view-transition {
   navigation: auto;
+}
+
+/* /projects ⇄ /projects/dice-augur: the root cross-fades around the title
+   morph, then the case-study summary staggers in (elements that exist only on
+   the incoming page). Going back reverses the morph and the summary fades out. */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-group(title-dice-augur) {
+    animation-duration: 460ms;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  ::view-transition-new(*.cs-stagger):only-child {
+    animation: vt-rise 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  ::view-transition-old(*.cs-stagger):only-child {
+    animation: vt-fade-out 160ms ease both;
+  }
+
+  ::view-transition-new(cs-eyebrow):only-child {
+    animation-delay: 140ms;
+  }
+
+  ::view-transition-new(cs-lede):only-child {
+    animation-delay: 200ms;
+  }
+
+  ::view-transition-new(cs-actions):only-child {
+    animation-delay: 260ms;
+  }
+
+  ::view-transition-new(cs-facts):only-child {
+    animation-delay: 320ms;
+  }
+
+  ::view-transition-new(cs-hero):only-child {
+    animation-delay: 380ms;
+  }
+}
+
+@keyframes vt-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

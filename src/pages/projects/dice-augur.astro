@@ -1,0 +1,961 @@
+---
+/**
+ * Case study: Dice Augur (Figma 2067:1209 desktop, 2067:1434 mobile).
+ * Every technical claim was checked against the augury repo (brief §7).
+ */
+import { Picture } from 'astro:assets'
+import PageLayout from '../../layouts/PageLayout.astro'
+import Button from '../../components/Button.astro'
+import Icon from '../../components/Icon.astro'
+import Panel from '../../components/Panel.astro'
+import Status from '../../components/Status.astro'
+import TagList from '../../components/TagList.astro'
+import { site } from '../../config/site'
+import { diceAugur } from '../../data/work'
+import heroNotebook from '../../assets/dice-augur/hero-notebook.png'
+import npcPage from '../../assets/dice-augur/npc-page.png'
+import diceRoll from '../../assets/dice-augur/dice-roll.png'
+import phoneNotebook from '../../assets/dice-augur/phone-notebook.png'
+import phoneDice from '../../assets/dice-augur/phone-dice.png'
+
+const diceAugurHome = 'https://diceaugur.com'
+const stack = [
+  { label: 'React 19' },
+  { label: 'TanStack Router' },
+  { label: 'Convex' },
+  { label: 'three.js' },
+  { label: 'Rapier' },
+  { label: 'Hono' },
+  { label: 'Docker' },
+  { label: 'Tailwind 4' },
+  { label: 'MCP' },
+]
+
+const toc = [
+  { id: 'problem', label: 'Less searching, more storytelling' },
+  { id: 'world', label: 'One connected world' },
+  { id: 'dice', label: 'Dice the whole table sees' },
+  { id: 'tour', label: 'A tour that runs the real app' },
+  { id: 'phone', label: 'Made for the phone at the table' },
+  { id: 'hood', label: 'Under the hood' },
+]
+
+const nodes = [
+  { name: 'Media server', detail: 'Hono · Docker · ffmpeg · sharp' },
+  { name: 'Your browser', detail: 'React 19 · dice in a worker · IndexedDB' },
+  { name: 'Convex', detail: 'Data · live sync · sign-in', hub: true },
+  { name: 'AI tools', detail: 'MCP server · personal token' },
+]
+const edges = ['audio and images', 'live queries and mutations', 'reads and edits as you']
+
+const cards = [
+  {
+    title: 'Convex',
+    body: 'Schema, live queries and mutations, and Google sign-in through Convex Auth. Every change reaches every open tab in real time.',
+  },
+  {
+    title: 'Media server',
+    body: 'Hono and Node in Docker on my own server. ffmpeg turns uploads into AAC so sound plays everywhere, Safari included, and sharp converts images to WebP. Each request’s Convex token is checked against Convex’s published keys.',
+  },
+  {
+    title: 'MCP server',
+    body: 'Lets AI tools read and edit your campaigns as you, with a personal access token created in Settings.',
+  },
+  {
+    title: 'Rules and tests',
+    body: 'The D&D 5e SRD (5.1 and 5.2) mapped into rules files for every class, species, background and feat, checked against a Zod schema. CI runs lint, typecheck, tests (Vitest and convex-test) and a build on every pull request.',
+  },
+]
+
+const figureSizes = '(min-width: 1280px) 815px, (min-width: 1024px) calc((100vw - 160px) * 8 / 11), calc(100vw - 40px)'
+---
+
+<PageLayout
+  title="Dice Augur"
+  description={`Case study: Dice Augur, a campaign notebook for tabletop games with 3D dice the whole table sees. Designed and built by ${site.name}, front end to backend.`}
+  ogImage="/og/dice-augur.png"
+  ogImageAlt="Dice Augur case study: a campaign notebook for tabletop games, with 3D dice the whole table sees."
+  current="projects"
+  surface={{ opacity: 0.07, glow: { y: '8.3%', rx: '70%', ry: '83.4%', alpha: 0.18 } }}
+>
+  <div slot="header">
+    <div class="container breadcrumbs">
+      <a class="back t-label-m" href="/projects"><Icon name="arrow-left" size={16} />All projects</a>
+      <p class="t-tag crumb-meta">Personal · 2026</p>
+    </div>
+
+    <div class="container hero">
+      <div class="hero-grid">
+        <div class="intro">
+          <p class="cs-eyebrow vt-stagger vt-eyebrow">
+            <span class="t-eyebrow">Case study · Personal<span class="wide-only"> · Full-stack</span></span>
+            <Status state="live">Live</Status>
+          </p>
+          <h1 class="t-display-xl cs-title" data-vt-visible>{diceAugur.title}</h1>
+          <p class="t-body-l lede vt-stagger vt-lede">
+            A campaign notebook for tabletop games. It keeps a world’s places, people and plot in one connected place, with
+            the dice, soundboard and timer a game master reaches for mid-session. I designed and built all of it, and it’s
+            live at diceaugur.com.
+          </p>
+          <div class="actions vt-stagger vt-actions">
+            <Button href={diceAugur.tour} icon="arrow-up-right" external>Take the tour</Button>
+            <Button href={diceAugurHome} tone="outline" icon="arrow-up-right" external>Visit diceaugur.com</Button>
+          </div>
+        </div>
+        <dl class="facts vt-stagger vt-facts">
+          <div class="fact">
+            <dt class="t-eyebrow">Role</dt>
+            <dd class="t-body-m">Solo: design, front end, backend and hosting</dd>
+          </div>
+          <div class="fact">
+            <dt class="t-eyebrow">Timeline</dt>
+            <dd class="t-body-m">2026 · in active development</dd>
+          </div>
+          <div class="fact">
+            <dt class="t-eyebrow">Platforms</dt>
+            <dd class="t-body-m">Web on desktop, tablet and phone · works offline</dd>
+          </div>
+          <div class="fact">
+            <dt class="t-eyebrow">Stack</dt>
+            <dd><TagList tags={stack} /></dd>
+          </div>
+        </dl>
+      </div>
+      <Picture
+        src={heroNotebook}
+        formats={['avif']}
+            fallbackFormat="webp"
+        widths={[700, 1200, 1800, 2400]}
+        sizes="(min-width: 1280px) 1200px, calc(100vw - 40px)"
+        alt="The Dice Augur notebook for Emberfall, the sample campaign: columns of story beats, locations, organisations, creatures, quests and things, beside the campaign overview and its map."
+        priority
+        class="hero-image vt-stagger vt-hero"
+      />
+    </div>
+  </div>
+
+  <div class="container case">
+    <nav class="toc" aria-label="On this page">
+      <p class="t-eyebrow toc-label">On this page</p>
+      <ul class="toc-list">
+        {
+          toc.map((item) => (
+            <li>
+              <a class="toc-link t-label-m" href={`#${item.id}`}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="sections">
+      <section class="story" id="problem" aria-labelledby="problem-title">
+        <p class="t-eyebrow step">01 · The problem</p>
+        <h2 class="t-heading-l" id="problem-title">Less searching, more storytelling</h2>
+        <p class="t-body-l">
+          A long-running campaign ends up spread across docs, maps, playlists and dice apps. Mid-session, the person running
+          the game is hunting through tabs while the table waits.
+        </p>
+        <p class="t-body-l">
+          Dice Augur keeps the world and the table tools in one place, built for the moment someone asks “wait, who was that
+          again?”
+        </p>
+      </section>
+
+      <section class="story" id="world" aria-labelledby="world-title">
+        <p class="t-eyebrow step">02 · The notebook</p>
+        <h2 class="t-heading-l" id="world-title">One connected world</h2>
+        <p class="t-body-l">
+          Locations, organisations, creatures, quests and things sit side by side as nested trees, and every page is
+          markdown. Mention another page and it becomes a link, so the Ember Queen’s page leads straight to her court and the
+          vault she’s after. Story beats tie the plot to the pages it touches.
+        </p>
+        <figure class="figure">
+          <Picture
+            src={npcPage}
+            formats={['avif']}
+            fallbackFormat="webp"
+            widths={[400, 815, 1200, 1630]}
+            sizes={figureSizes}
+            alt="The Ember Queen’s NPC page: her portrait and status, with notes linking to The Ember Court and The Ember Vault, beside the location and organisation trees."
+            class="shot"
+          />
+          <figcaption class="t-tag caption">
+            An NPC page from the sample campaign, linked to the court she leads and the vault she wants.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="story" id="dice" aria-labelledby="dice-title">
+        <p class="t-eyebrow step">03 · The dice</p>
+        <h2 class="t-heading-l" id="dice-title">Dice the whole table sees</h2>
+        <p class="t-body-l">
+          Dice are three.js models thrown with Rapier physics inside a web worker, so the app stays responsive while they
+          tumble. Every roll syncs through Convex: when another player rolls, their dice land on your screen too. Rolls can be
+          kept private, and the previews of each dice skin are rendered ahead of time with headless Chromium.
+        </p>
+        <figure class="figure">
+          <Picture
+            src={diceRoll}
+            formats={['avif']}
+            fallbackFormat="webp"
+            widths={[400, 815, 1200, 1630]}
+            sizes={figureSizes}
+            alt="The dice roller mid-throw: two d6, a d8 and two d20 tumbling across the notebook, with the total of 29 already in the roll log."
+            class="shot"
+          />
+          <figcaption class="t-tag caption">
+            2d6 + d8 + 2d20, mid-throw. The total and each die’s result are already in the roll log.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="story" id="tour" aria-labelledby="tour-title">
+        <p class="t-eyebrow step">04 · The tour</p>
+        <h2 class="t-heading-l" id="tour-title">A tour that runs the real app</h2>
+        <p class="t-body-l">
+          “Take a tour” isn’t a video or a mock-up. It runs the app’s own Convex functions inside your browser tab, through
+          convex-test, on a sample campaign saved to IndexedDB. Visitors get the whole app with no account, and nothing touches
+          production.
+        </p>
+        <p class="t-body-l">
+          The same in-browser backend powers offline mode: changes made without a connection sync once you’re back, and
+          anything that can’t be saved is listed so it isn’t lost.
+        </p>
+        <Panel as="aside" class="callout" tile={358} opacity={0.06} aria-label="Try the tour">
+          <div class="callout-text">
+            <p class="t-heading-s">Try it yourself</p>
+            <p class="t-body-s callout-body">No account needed. Your edits stay in your browser.</p>
+          </div>
+          <Button href={diceAugur.tour} icon="arrow-up-right" external>Take the tour</Button>
+        </Panel>
+      </section>
+
+      <section class="story" id="phone" aria-labelledby="phone-title">
+        <p class="t-eyebrow step">05 · On the phone</p>
+        <h2 class="t-heading-l" id="phone-title">Made for the phone at the table</h2>
+        <p class="t-body-l">
+          The app frame changes shape with the screen: a sidebar on desktop, a header on tablets, and an app bar with bottom
+          navigation on phones, where the dice, soundboard and timer open as drawers.
+        </p>
+        <figure class="figure">
+          <div class="phones">
+            <Picture
+              src={phoneNotebook}
+              formats={['avif']}
+            fallbackFormat="webp"
+              widths={[150, 260, 520, 780]}
+              sizes="(min-width: 720px) 260px, 150px"
+              alt="Dice Augur on a phone during the tour: the Locations tree, with dice, soundboard and timer in the bottom navigation."
+              class="phone"
+            />
+            <Picture
+              src={phoneDice}
+              formats={['avif']}
+            fallbackFormat="webp"
+              widths={[150, 260, 520, 780]}
+              sizes="(min-width: 720px) 260px, 150px"
+              alt="The dice drawer open on a phone, mid-roll, over the Locations tree."
+              class="phone"
+            />
+          </div>
+          <figcaption class="t-tag caption">On a phone: the notebook, and the dice drawer mid-roll.</figcaption>
+        </figure>
+      </section>
+    </div>
+  </div>
+
+  <section class="container hood" id="hood" aria-labelledby="hood-title">
+    <div class="hood-head">
+      <p class="t-eyebrow step">06 · Under the hood</p>
+      <h2 class="t-heading-l" id="hood-title">Four pieces, each doing one job</h2>
+    </div>
+
+    <figure class="diagram" aria-labelledby="diagram-caption">
+      <ol class="diagram-row">
+        {
+          nodes.map((node, i) => (
+            <>
+              <li class:list={['node', { 'node--hub': node.hub }]}>
+                <span class="t-label-m node-name">{node.name}</span>
+                <span class="t-tag node-detail">{node.detail}</span>
+              </li>
+              {i < edges.length && (
+                <li class="edge" aria-label={`${node.name} and ${nodes[i + 1].name}: ${edges[i]}`}>
+                  <span class="t-tag edge-label" aria-hidden="true">
+                    {edges[i]}
+                  </span>
+                  <span class="edge-line" aria-hidden="true">
+                    <Icon name="arrow-left" size={12} />
+                    <span class="edge-stroke" />
+                    <Icon name="arrow-right" size={12} />
+                  </span>
+                </li>
+              )}
+            </>
+          ))
+        }
+      </ol>
+      <figcaption class="t-body-s diagram-caption" id="diagram-caption">
+        The browser uploads audio and images straight to the media server with its Convex sign-in token; the server verifies
+        the token and reports each upload back to Convex.
+      </figcaption>
+    </figure>
+
+    <ul class="cards" aria-label="The four pieces" tabindex="0">
+      {
+        cards.map((card) => (
+          <li class="card" data-marker-label={card.title}>
+            <h3 class="t-heading-s">{card.title}</h3>
+            <p class="t-body-s card-body">{card.body}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="container closing" aria-labelledby="closing-title">
+    <Panel class="closing-panel" opacity={0.07} glow={{ x: '50%', y: '50%', rx: '83.3%', ry: '41.7%', alpha: 0.2 }}>
+      <h2 class="t-display-m" id="closing-title">Roll some dice</h2>
+      <p class="t-body-l closing-body">
+        The tour is the whole app with a sample campaign. No account, and your changes stay in your browser.
+      </p>
+      <div class="closing-actions">
+        <Button href={diceAugur.tour} icon="arrow-up-right" external>Take the tour</Button>
+        <Button href="/projects" tone="outline" icon="arrow-left">All projects</Button>
+      </div>
+    </Panel>
+  </section>
+</PageLayout>
+
+<style>
+  /* ----- Breadcrumbs ----- */
+  .breadcrumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding-top: var(--space-4);
+  }
+
+  .back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-left: -8px;
+    padding: 8px 14px 8px 10px;
+    border-radius: var(--radius-full);
+    color: var(--text-secondary-lit);
+    font-size: 13px;
+    line-height: 18px;
+    transition:
+      color 160ms ease,
+      background 160ms ease;
+  }
+
+  .back:hover {
+    background: var(--glass-soft);
+    color: var(--text-primary);
+  }
+
+  .crumb-meta {
+    color: var(--text-tertiary-lit);
+  }
+
+  /* ----- Hero ----- */
+  .hero {
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+    padding-block: 28px 48px;
+  }
+
+  .hero-grid {
+    display: grid;
+    gap: 36px;
+  }
+
+  .intro {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .cs-eyebrow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-3);
+    color: var(--text-accent);
+  }
+
+  .cs-title {
+    width: fit-content;
+    view-transition-name: title-dice-augur;
+  }
+
+  .lede {
+    color: var(--text-secondary);
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: var(--space-2);
+  }
+
+  .facts {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .fact {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .fact dt {
+    color: var(--text-tertiary-lit);
+  }
+
+  .fact dd {
+    margin: 0;
+  }
+
+  :global(img.hero-image) {
+    width: 100%;
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    box-shadow:
+      0 30px 90px rgb(0 0 0 / 0.7),
+      0 0 120px -20px rgb(6 182 212 / 0.22);
+  }
+
+  /* ----- Story ----- */
+  .case {
+    display: grid;
+    padding-block: var(--space-4) 56px;
+  }
+
+  .toc {
+    display: none;
+  }
+
+  .sections {
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+    min-width: 0;
+  }
+
+  .story {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    scroll-margin-top: var(--space-6);
+  }
+
+  .story > .t-body-l {
+    max-width: 720px;
+    color: var(--text-secondary);
+  }
+
+  .step {
+    color: var(--text-accent);
+  }
+
+  .figure {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding-top: 10px;
+  }
+
+  .figure :global(img.shot) {
+    width: 100%;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+  }
+
+  .caption {
+    color: var(--text-tertiary);
+  }
+
+  .phones {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-4);
+  }
+
+  .phones :global(picture) {
+    flex: 1 1 0;
+    max-width: 150px;
+  }
+
+  .phones :global(img.phone) {
+    width: 100%;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+  }
+
+  .callout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    border-color: rgb(34 211 238 / 0.35);
+    border-radius: var(--radius-lg);
+  }
+
+  .callout-text {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .callout-body {
+    color: var(--text-secondary);
+  }
+
+  /* ----- Under the hood ----- */
+  .hood {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    padding-bottom: var(--space-16);
+    scroll-margin-top: var(--space-6);
+  }
+
+  .hood-head {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .diagram {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+
+  .diagram-row {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-5);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    background: rgb(14 18 23 / 0.6);
+  }
+
+  .node {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: var(--space-4) 18px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    background: var(--bg-raised);
+  }
+
+  .node--hub {
+    border-color: rgb(34 211 238 / 0.7);
+    box-shadow: 0 0 24px rgb(6 182 212 / 0.3);
+  }
+
+  .node--hub .node-name {
+    color: var(--text-accent);
+  }
+
+  .node-detail {
+    color: var(--text-secondary);
+  }
+
+  .edge {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 6px 0 6px var(--space-6);
+  }
+
+  .edge-label {
+    order: 2;
+    color: var(--text-tertiary-lit);
+  }
+
+  .edge-line {
+    display: flex;
+    align-self: stretch;
+    min-height: 34px;
+    border-left: 1px solid rgb(34 211 238 / 0.55);
+  }
+
+  .edge-line :global(.icon),
+  .edge-stroke {
+    display: none;
+  }
+
+  .diagram-caption {
+    max-width: 760px;
+    color: var(--text-tertiary);
+  }
+
+  /* Mobile: a scroll-snap carousel that bleeds to the screen edges and peeks
+     at the next card. */
+  .cards {
+    display: flex;
+    align-items: stretch;
+    gap: var(--space-3);
+    margin-inline: calc(-1 * var(--gutter));
+    padding-inline: var(--gutter);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: none;
+    scroll-marker-group: after;
+  }
+
+  .cards::-webkit-scrollbar {
+    display: none;
+  }
+
+  .card {
+    display: flex;
+    flex: 0 0 min(288px, 80%);
+    flex-direction: column;
+    gap: 10px;
+    padding: var(--space-5) var(--space-5) 22px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    background: var(--bg-raised);
+    scroll-snap-align: start;
+  }
+
+  .card-body {
+    color: var(--text-secondary);
+  }
+
+  /* Pager dots where the browser supports CSS scroll markers. */
+  .cards::scroll-marker-group {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: var(--space-6);
+  }
+
+  .card::scroll-marker {
+    /* Each dot is named after its card for screen readers. */
+    content: '' / attr(data-marker-label);
+    width: 6px;
+    height: 6px;
+    border-radius: var(--radius-full);
+    background: #6b7887;
+    transition:
+      width 200ms ease,
+      background 200ms ease;
+  }
+
+  .card::scroll-marker:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-offset);
+  }
+
+  .card::scroll-marker:target-current {
+    width: 18px;
+    background: var(--accent-hover);
+  }
+
+  /* ----- Closing ----- */
+  .closing {
+    padding-bottom: var(--space-16);
+  }
+
+  .closing-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-8) var(--space-6);
+    border-radius: var(--radius-xl);
+    text-align: center;
+  }
+
+  .closing-body {
+    max-width: 560px;
+    color: var(--text-secondary);
+  }
+
+  .closing-actions {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    gap: var(--space-3);
+    padding-top: 10px;
+  }
+
+  @media (min-width: 720px) {
+    .breadcrumbs {
+      padding-top: 28px;
+    }
+
+    .back {
+      font-size: 15px;
+      line-height: 20px;
+      letter-spacing: -0.002em;
+    }
+
+    .hero {
+      gap: var(--space-16);
+      padding-block: var(--space-12) 88px;
+    }
+
+    .intro {
+      gap: var(--space-6);
+    }
+
+    .actions,
+    .closing-actions {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+    }
+
+    .closing-actions {
+      align-self: center;
+      justify-content: center;
+    }
+
+    :global(img.hero-image) {
+      border-radius: 18px;
+    }
+
+    .sections {
+      gap: 88px;
+    }
+
+    .story {
+      gap: 18px;
+    }
+
+    .phones {
+      gap: 28px;
+    }
+
+    .phones :global(picture) {
+      max-width: 260px;
+    }
+
+    .phones :global(img.phone) {
+      border-radius: var(--radius-xl);
+    }
+
+    .callout {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-6);
+      padding: var(--space-6) var(--space-6) var(--space-6) 28px;
+    }
+
+    .callout-text {
+      flex: 1;
+    }
+
+    .hood {
+      gap: var(--space-8);
+      padding-bottom: 112px;
+    }
+
+    .hood-head {
+      gap: 18px;
+    }
+
+    .diagram {
+      gap: var(--space-8);
+    }
+
+    .closing {
+      padding-bottom: 120px;
+    }
+
+    .closing-panel {
+      gap: 18px;
+      padding: 56px var(--space-12);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .hero-grid {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: 80px;
+      align-items: start;
+    }
+
+    .facts {
+      gap: 22px;
+      padding: 10px 0 0 28px;
+      border-top: 0;
+      border-left: 1px solid var(--border-subtle);
+    }
+
+    .case {
+      grid-template-columns: minmax(0, 3fr) minmax(0, 8fr);
+      gap: 80px;
+      padding-block: var(--space-10) 104px;
+    }
+
+    .toc {
+      position: sticky;
+      top: var(--space-6);
+      display: flex;
+      flex-direction: column;
+      align-self: start;
+      gap: var(--space-4);
+      padding-top: var(--space-2);
+    }
+
+    .toc-label {
+      color: var(--text-tertiary);
+    }
+
+    .toc-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      scroll-target-group: auto;
+    }
+
+    .toc-link {
+      display: block;
+      padding: 8px 12px 8px 14px;
+      border-left: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      transition:
+        color 160ms ease,
+        border-color 160ms ease;
+    }
+
+    .toc-link:hover {
+      border-left-color: var(--border-strong);
+      color: var(--text-primary);
+    }
+
+    /* Highlights the section in view, where CSS scroll targets are supported. */
+    .toc-link:target-current {
+      padding-left: 13px;
+      border-left: 2px solid var(--accent-hover);
+      color: var(--text-primary);
+    }
+
+    .diagram-row {
+      flex-direction: row;
+      align-items: center;
+      padding: 36px;
+    }
+
+    .node {
+      flex: 0 1 196px;
+      min-width: 0;
+    }
+
+    .edge {
+      flex: 1 1 96px;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 96px;
+      padding: 0 6px;
+    }
+
+    .edge-label {
+      order: 0;
+      text-align: center;
+    }
+
+    .edge-line {
+      align-self: stretch;
+      align-items: center;
+      gap: 2px;
+      min-height: 0;
+      border-left: 0;
+      color: var(--accent-hover);
+    }
+
+    .edge-line :global(.icon) {
+      display: block;
+      flex: none;
+    }
+
+    .edge-stroke {
+      display: block;
+      flex: 1;
+      border-top: 1px solid rgb(34 211 238 / 0.55);
+    }
+
+    /* Desktop: a 2×2 grid; every card matches the tallest. */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-auto-rows: 1fr;
+      gap: var(--space-5);
+      margin-inline: 0;
+      padding-inline: 0;
+      overflow: visible;
+      scroll-snap-type: none;
+    }
+
+    .cards::scroll-marker-group {
+      display: none;
+    }
+
+    .card {
+      padding: 26px 28px 28px;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(html) {
+      scroll-behavior: smooth;
+    }
+  }
+
+  /* ----- Page transition: the summary staggers in after the title morph ----- */
+  .vt-stagger {
+    view-transition-class: cs-stagger;
+  }
+
+  .vt-eyebrow {
+    view-transition-name: cs-eyebrow;
+  }
+
+  .vt-lede {
+    view-transition-name: cs-lede;
+  }
+
+  .vt-actions {
+    view-transition-name: cs-actions;
+  }
+
+  .vt-facts {
+    view-transition-name: cs-facts;
+  }
+
+  :global(.vt-hero) {
+    view-transition-name: cs-hero;
+    view-transition-class: cs-stagger;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cs-title,
+    .vt-stagger,
+    :global(.vt-hero) {
+      view-transition-name: none;
+    }
+  }
+</style>

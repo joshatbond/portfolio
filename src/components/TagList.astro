@@ -1,0 +1,23 @@
+---
+import TechTag from './TechTag.astro'
+import type { Tag } from '../data/work'
+
+interface Props {
+  tags: Tag[]
+  label?: string
+  class?: string
+}
+const { tags, label = 'Stack', class: className } = Astro.props
+---
+
+<ul class:list={['tags', className]} aria-label={label}>
+  {tags.map((tag) => <TechTag wideOnly={tag.wideOnly}>{tag.label}</TechTag>)}
+</ul>
+
+<style>
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+</style>
