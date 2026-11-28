@@ -38,14 +38,14 @@ export function layoutHomes(
   const room = grow(frame, -half)
   const blocked = (x: number, y: number, ws: Box[]) => ws.some((w) => x > w.x0 && x < w.x1 && y > w.y0 && y < w.y1)
   // The nearest free point is level with p on a wall's edge, or a corner
-  // where two edges cross; if there's none, the chip stays put.
+  // where two edges cross; null if there's none.
   const nearest = (p: Point, more: Box[] = []) => {
     const ws = walls.concat(more)
     const free = (x: number, y: number) => x >= room.x0 && x <= room.x1 && y >= room.y0 && y <= room.y1 && !blocked(x, y, ws)
-    if (free(p.x, p.y)) return
+    if (free(p.x, p.y)) return p
     const xs = [p.x, room.x0, room.x1, ...ws.flatMap((w) => [w.x0, w.x1])]
     const ys = [p.y, room.y0, room.y1, ...ws.flatMap((w) => [w.y0, w.y1])]
-    let best = p
+    let best: Point | null = null
     let d = Infinity
     for (const x of xs) {
       for (const y of ys) {
@@ -53,7 +53,7 @@ export function layoutHomes(
         if (e < d && free(x, y)) [best, d] = [{ x, y }, e]
       }
     }
-    Object.assign(p, best)
+    return best
   }
   const apart = size + gap
   // (Pushes settle by halves, so within a pixel is apart enough.)
@@ -62,7 +62,7 @@ export function layoutHomes(
   // Settle: send each moving chip to its nearest free spot, then push apart
   // any two that crowd each other (half each, along the shallower overlap).
   for (let i = 0; i < 50; i++) {
-    moving.forEach((p) => nearest(p))
+    for (const p of moving) Object.assign(p, nearest(p))
     let crowded = false
     for (const [j, a] of moving.entries()) {
       for (const b of moving.slice(j + 1)) {
@@ -85,14 +85,13 @@ export function layoutHomes(
     }
     if (!crowded) break
   }
-  moving.forEach((p) => nearest(p))
+  for (const p of moving) Object.assign(p, nearest(p))
   // Where two still crowd each other (the spot they share has room for one),
-  // one goes back home and takes the nearest spot clear of every other chip.
+  // one takes the spot nearest its home that's clear of every other chip. If
+  // there's none, it stays crowded rather than go back over the text.
   for (const p of moving) {
     const others = moving.filter((q) => q !== p)
-    if (!others.some((q) => crowd(p, q))) continue
-    Object.assign(p, homes[out.indexOf(p)])
-    nearest(p, others.map(chip))
+    if (others.some((q) => crowd(p, q))) Object.assign(p, nearest(homes[out.indexOf(p)], others.map(chip)))
   }
   return out
 }
