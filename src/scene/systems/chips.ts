@@ -83,7 +83,7 @@ function startDive(world: SceneWorld, eid: number, from: { x: number; y: number 
 }
 
 /** Dive: tumble down to a depth band, scattering away from the disturbance. */
-function dive(world: SceneWorld, eid: number, dt: number) {
+function dive(eid: number, dt: number) {
   const k = Math.min(1, State.time[eid] / State.duration[eid])
   Position.z[eid] = State.fromZ[eid] + (-C.dive.bands[State.band[eid]] - State.fromZ[eid]) * ease(k)
   Position.x[eid] += Velocity.x[eid] * dt
@@ -249,7 +249,7 @@ export function chipsSystem(): System {
         }
         if (idle && (mode === Mode.SCHOOL || mode === Mode.DIVE) && world.input.lastAt > 0) startRise(eid)
         if (State.mode[eid] === Mode.STILL) still(world, eid, dt)
-        else if (State.mode[eid] === Mode.DIVE) dive(world, eid, dt)
+        else if (State.mode[eid] === Mode.DIVE) dive(eid, dt)
         else if (State.mode[eid] === Mode.SCHOOL) school(world, eid, schooling, dt)
         else rise(eid)
       }

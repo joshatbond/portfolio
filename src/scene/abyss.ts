@@ -27,8 +27,10 @@ export function drawAbyss(): { texture: CanvasTexture; rect: DOMRect } | null {
     const text = cs.textTransform === 'uppercase' ? el.textContent!.toUpperCase() : el.textContent!
     const m = ctx.measureText(text)
     const baseline = r.top - rect.top + (r.height - (m.fontBoundingBoxAscent + m.fontBoundingBoxDescent)) / 2 + m.fontBoundingBoxAscent
-    ctx.shadowColor = 'rgba(6, 182, 212, 0.55)'
-    ctx.shadowBlur = host.classList.contains('name') ? 23 : 11
+    // The same wide, faint halo as the DOM text (a brighter glow crowds the
+    // letters below the contrast floor).
+    ctx.shadowColor = host.classList.contains('name') ? 'rgba(6, 182, 212, 0.16)' : 'rgba(6, 182, 212, 0.45)'
+    ctx.shadowBlur = host.classList.contains('name') ? 36 : 11
     ctx.fillStyle = '#cffafe'
     ctx.fillText(text, r.left - rect.left, baseline)
     ctx.shadowBlur = 0
