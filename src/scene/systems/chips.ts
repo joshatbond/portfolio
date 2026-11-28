@@ -1,6 +1,6 @@
 import { addComponent, addEntity, query, removeEntity } from 'bitecs'
 import { site } from '../../config/site'
-import { Bubble, Chip, Fish, Position, Rotation, Velocity } from '../chips/components'
+import { Bubble, Chip, Fish, MAX_BUBBLES, Position, Rotation, Velocity } from '../chips/components'
 import { chipKeys } from '../chips/geometry'
 import { layoutHomes, type Box } from '../chips/layout'
 import { config } from '../config'
@@ -26,6 +26,8 @@ const turn = (a: number, b: number) => {
 const depthScale = (world: SceneWorld, depth: number) => (world.view.distance + depth) / world.view.distance
 /** Swimming distances and speeds are for a window with a 900 px short side; phones get them smaller, though not in full. */
 const swimScale = (world: SceneWorld) => Math.min(1, Math.sqrt(lightScale(world)))
+/** How far past the window's edge a fish waits to swim in, out of sight (px). */
+const OFFSTAGE = C.size * 0.75
 
 /** The still's clearance (px) around a moved chip: from the text, pills, HUD and other chips. */
 const STILL_GAP = 16
@@ -176,8 +178,6 @@ function arrive(world: SceneWorld) {
     Fish.homeY[eid] = f.home.y
     Fish.goalZ[eid] = -goalDepth
     Fish.depth[eid] = goalDepth
-    // Far enough past the edge to be out of sight.
-    const margin = C.size * 0.75
     let x: number, y: number, z: number
     if (f.role === 'deep') {
       // Out of sight in the dark, nearer the middle than its spot.
@@ -190,12 +190,12 @@ function arrive(world: SceneWorld) {
       z = -A.behindFrom
       const k = depthScale(world, A.behindFrom)
       x = f.home.x * k * 0.8
-      y = f.from * ((H / 2) * k + margin)
+      y = f.from * ((H / 2) * k + OFFSTAGE)
     } else {
       const d = goalDepth + rand(A.depth.sideDrop)
       const k = depthScale(world, d)
       z = -d
-      x = f.from * ((W / 2) * k + margin)
+      x = f.from * ((W / 2) * k + OFFSTAGE)
       y = clamp(f.home.y * k + (random() - 0.5) * H * 0.3, (-H / 2) * k * 0.85, (H / 2) * k * 0.85)
     }
     Position.x[eid] = x
@@ -210,6 +210,14 @@ function arrive(world: SceneWorld) {
   }
 }
 
+/** A fish that hasn't set off yet, back out of sight past the edge it comes in from (a deep one is out of sight already). */
+function park(world: SceneWorld, eid: number) {
+  const k = depthScale(world, -Position.z[eid])
+  const { width: W, height: H } = world.viewport
+  if (Fish.entering[eid] === Role.side) Position.x[eid] = Math.sign(Position.x[eid]) * ((W / 2) * k + OFFSTAGE)
+  if (Fish.entering[eid] === Role.behind) Position.y[eid] = Math.sign(Position.y[eid]) * ((H / 2) * k + OFFSTAGE)
+}
+
 function drop(world: SceneWorld, eid: number, radius: number, strength: number) {
   const { width: W, height: H } = world.viewport
   const k = depthScale(world, -Position.z[eid])
@@ -217,7 +225,8 @@ function drop(world: SceneWorld, eid: number, radius: number, strength: number) 
 }
 
 function loose(world: SceneWorld, eid: number, count: number) {
-  for (let i = 0; i < count; i++) {
+  const room = MAX_BUBBLES - query(world, [Bubble]).length
+  for (let i = 0; i < Math.min(count, room); i++) {
     const b = addEntity(world)
     addComponent(world, b, Position)
     addComponent(world, b, Velocity)
@@ -406,7 +415,7 @@ function swim(world: SceneWorld, eid: number, school: number[], dt: number, s: n
 
   // The tail: it beats faster the faster it swims, and sways the body.
   const beat = Math.min(S.wag.maxBeat, S.wag.perPx * v)
-  Fish.wag[eid] += TAU * beat * dt
+  Fish.wag[eid] = (Fish.wag[eid] + TAU * beat * dt) % TAU
   const sway = S.wag.sway * s * TAU * beat * Math.cos(Fish.wag[eid])
   const c = Math.cos(heading)
   const sn = Math.sin(heading)
@@ -449,7 +458,8 @@ export function chipsSystem(): System {
     resize(world) {
       if (world.frozen) return still(world)
       // The fish carry on through a resize, keeping to their spots for the
-      // new window; a different set (phone ↔ wider) swims in afresh.
+      // new window (and those yet to set off, out of its sight); a
+      // different set (phone ↔ wider) swims in afresh.
       const keys: string[] = keysFor(world)
       if (keys.join() !== shown) {
         shown = keys.join()
@@ -459,6 +469,7 @@ export function chipsSystem(): System {
         const home = homeOf(world, Chip.kind[eid], keys.indexOf(Chip.kind[eid]))
         Fish.homeX[eid] = home.x
         Fish.homeY[eid] = home.y
+        if (Fish.age[eid] < Fish.delay[eid]) park(world, eid)
       }
     },
     update(world) {

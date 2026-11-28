@@ -48,5 +48,6 @@ export const Fish = {
   wake: f32(),
 }
 
-/** A bubble from a startled fish: its age and lifetime. */
+/** A bubble from a startled fish: its age and lifetime. No more than MAX_BUBBLES at once. */
 export const Bubble = { age: f32(), life: f32() }
+export const MAX_BUBBLES = 256
