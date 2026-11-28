@@ -4,11 +4,11 @@ import { fileURLToPath } from 'node:url'
 import threeMinify from 'rollup-plugin-three-minify'
 import { site } from './src/config/site.ts'
 
-/** @param {string} pkg @param {string} file */
 // rollup-plugin-three-minify resolves 'three' with no importer, which Vite 8
 // under Astro answers with a bare path; point it at the prebuilt module.
 const threeModule = fileURLToPath(import.meta.resolve('three'))
 
+/** @param {string} pkg @param {string} file */
 const fontsource = (pkg, file) => `@fontsource-variable/${pkg}/files/${file}`
 
 export default defineConfig({

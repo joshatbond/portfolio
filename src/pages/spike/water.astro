@@ -2,15 +2,13 @@
 // SPIKE (throwaway): the homepage composition over the water look test.
 import PoolLayout from '../../layouts/PoolLayout.astro'
 import Button from '../../components/Button.astro'
-import { causticsUrl } from '../../lib/caustics'
 import { site } from '../../config/site'
 
 const [first, ...rest] = site.name.split(' ')
-const caustics = await causticsUrl()
 ---
 
 <PoolLayout status hint index={false} title="Water spike">
-  <div slot="scene" class="pool-scene" data-caustics={caustics}></div>
+  <div slot="scene" class="pool-scene"></div>
   <div class="abyss">
     <h1 class="name"><span>{first}</span>{' '}<span>{rest.join(' ')}</span></h1>
     <p class="role">
@@ -30,8 +28,8 @@ const caustics = await causticsUrl()
   const gl = document.createElement('canvas').getContext('webgl2')
   if (el && gl) {
     await document.fonts.ready
-    const { mountWater } = await import('../../scene/spike/water')
-    mountWater(el, { caustics: el.dataset.caustics! })
+    const { mountScene } = await import('../../scene')
+    mountScene(el)
   }
 </script>
 
@@ -60,6 +58,8 @@ const caustics = await causticsUrl()
 
 <style>
   .abyss {
+    user-select: none;
+    -webkit-user-select: none;
     display: flex;
     flex-direction: column;
     align-items: center;
