@@ -1,22 +1,37 @@
-import { Vector2, Vector4, type ShaderMaterial } from 'three'
+import { Vector2, Vector4, type ShaderMaterial, type Texture } from 'three'
+import { drawAbyss } from '../abyss'
 import { config } from '../config'
 import { pass } from '../gpu'
 import { surfaceFrag } from '../shaders/surface'
-import type { System } from '../world'
+import { localRect, type System } from '../world'
 
-/** The water surface and the frame's LEDs, drawn to the canvas over the light. */
+/**
+ * The water surface and the frame's LEDs, drawn to the canvas over the light,
+ * with the name and title deep below it, refracted at full resolution.
+ */
 export function surfaceSystem(): System {
   let material: ShaderMaterial | null = null
+  let nameTexture: Texture | null = null
+  const dispose = () => {
+    material?.dispose()
+    nameTexture?.dispose()
+    material = null
+    nameTexture = null
+  }
   return {
     resize(world) {
-      material?.dispose()
-      const { width: W, height: H } = world.viewport
+      dispose()
+      const { width: W, height: H, dpr } = world.viewport
       const pills = [new Vector4(), new Vector4()]
       document.querySelectorAll<HTMLElement>('.pills .btn').forEach((el, i) => {
         if (i > 1) return
-        const b = el.getBoundingClientRect()
+        const b = localRect(world, el)
         pills[i].set(b.x, b.y, b.width, b.height)
       })
+      const abyss = world.capture && !world.capture.name ? null : drawAbyss(world.container, dpr, { glyphs: world.capture?.glyphs ?? true })
+      nameTexture = abyss?.texture ?? null
+      const r = abyss?.rect
+      const nameRect = r ? new Vector4(r.x, r.y, r.width, r.height) : new Vector4()
       const { min, max, ofShortSide } = config.surface.edgeFalloff
       material = pass(surfaceFrag, {
         tUnder: { value: null },
@@ -27,7 +42,11 @@ export function surfaceSystem(): System {
         uRefract: { value: config.surface.refract },
         uEdgeFalloff: { value: Math.min(max, Math.max(min, Math.min(W, H) * ofShortSide)) },
         uPills: { value: pills },
-        uLed: { value: world.capture ? 0 : 1 },
+        tName: { value: nameTexture },
+        uNameRect: { value: nameRect },
+        uNameDim: { value: config.abyss.dim },
+        uLed: { value: world.capture && !world.capture.led ? 0 : 1 },
+        uGlint: { value: new Vector4(...config.surface.glint.slope, config.surface.glint.midWater, config.surface.glint.strength) },
       })
     },
     update(world) {
@@ -38,9 +57,6 @@ export function surfaceSystem(): System {
       material.uniforms.uSimScale.value = world.water.simScale
       world.gpu.quad.render(world.gpu.renderer, material, null)
     },
-    dispose() {
-      material?.dispose()
-      material = null
-    },
+    dispose,
   }
 }

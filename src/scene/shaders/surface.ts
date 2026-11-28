@@ -11,7 +11,11 @@ uniform vec2 uResolution;    // CSS px
 uniform float uRefract;
 uniform float uEdgeFalloff;  // px: how far in from the frame its reflections reach
 uniform vec4 uPills[2];      // x, y, w, h in CSS px (top-left origin)
+uniform sampler2D tName;     // the name and title, drawn from the DOM
+uniform vec4 uNameRect;      // where tName sits: x, y, w, h in CSS px (top-left origin)
+uniform float uNameDim;
 uniform float uLed;          // the frame's LEDs (off when capturing a still)
+uniform vec4 uGlint;         // slope where glints start, slope where they're full, mid-water share, strength
 varying vec2 vUv;
 
 float roundedBox(vec2 p, vec2 b, float r) {
@@ -24,7 +28,17 @@ void main() {
   vec2 n = info.ba;
   float slope = length(n);
 
-  vec3 col = texture2D(tUnder, vUv + n * uRefract).rgb;
+  vec2 bent = vUv + n * uRefract;
+  vec3 col = texture2D(tUnder, bent).rgb;
+  // The name and title, deep below: the camera never moves, so they sit
+  // right where the page lays them out, bent by the surface like the light.
+  if (uNameRect.z > 0.0) {
+    vec2 nuv = (vec2(bent.x, 1.0 - bent.y) * uResolution - uNameRect.xy) / uNameRect.zw;
+    if (nuv.x >= 0.0 && nuv.y >= 0.0 && nuv.x <= 1.0 && nuv.y <= 1.0) {
+      vec4 t = texture2D(tName, vec2(nuv.x, 1.0 - nuv.y));
+      col += t.rgb * t.a * uNameDim;
+    }
+  }
   // The chips, in the water, refracted like everything else below.
   // Premultiplied: opaque chips replace what's behind; bubbles and the
   // chips' antialiased edges blend.
@@ -34,16 +48,17 @@ void main() {
   vec2 px = vUv * uResolution;  // y up
   float dEdge = min(min(px.x, uResolution.x - px.x), min(px.y, uResolution.y - px.y));
 
-  // The frame's LEDs, caught on crests tilted toward them: thin, broken
-  // streaks, brightest near the frame, nearly gone mid-water.
+  // The frame's LEDs, mirrored in the ripples: a ripple's side that faces a
+  // strip catches a glint of it. Brightest near the frame, and faint all the
+  // way across, so the open water still shows it's moving.
   vec2 nd = normalize(n + 1e-6);
-  float lean = smoothstep(0.004, 0.03, slope);
-  float streak = 0.0;
-  streak += pow(max(0.0, -nd.x), 6.0) * exp(-px.x / uEdgeFalloff);
-  streak += pow(max(0.0, nd.x), 6.0) * exp(-(uResolution.x - px.x) / uEdgeFalloff);
-  streak += pow(max(0.0, -nd.y), 6.0) * exp(-px.y / uEdgeFalloff);
-  streak += pow(max(0.0, nd.y), 6.0) * exp(-(uResolution.y - px.y) / uEdgeFalloff);
-  col += vec3(0.40, 0.91, 0.98) * streak * lean * 1.35;
+  float lean = smoothstep(uGlint.x, uGlint.y, slope);
+  float facing = 0.0;
+  facing += pow(max(0.0, -nd.x), 4.0) * (uGlint.z + exp(-px.x / uEdgeFalloff));
+  facing += pow(max(0.0, nd.x), 4.0) * (uGlint.z + exp(-(uResolution.x - px.x) / uEdgeFalloff));
+  facing += pow(max(0.0, -nd.y), 4.0) * (uGlint.z + exp(-px.y / uEdgeFalloff));
+  facing += pow(max(0.0, nd.y), 4.0) * (uGlint.z + exp(-(uResolution.y - px.y) / uEdgeFalloff));
+  col += vec3(0.40, 0.91, 0.98) * facing * lean * uGlint.w;
 
   // The pills, mirrored and wobbling on moving water.
   for (int i = 0; i < 2; i++) {
@@ -56,7 +71,6 @@ void main() {
     col += vec3(0.13, 0.83, 0.93) * glint * 0.35;
   }
 
-  col += vec3(0.40, 0.91, 0.98) * smoothstep(0.08, 0.2, slope) * 0.07 * (0.2 + 0.8 * exp(-dEdge / 220.0));
 
   // The LED strips in the frame: a hot core and its glow.
   float core = 1.0 - smoothstep(1.0, 2.5, dEdge);

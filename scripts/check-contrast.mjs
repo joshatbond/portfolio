@@ -9,7 +9,10 @@
 //    doesn't fail a paragraph. All text is hidden and the page is captured in
 //    overlapping viewport-sized windows, without changing the layout.
 //
-// Pages are checked at the design widths and either side of each breakpoint.
+// Pages are checked at the design widths and either side of each breakpoint,
+// in reduced motion. The homepage is checked twice: with the water scene
+// (whose own name and title check-scene-text.mjs measures) and with its
+// fallback still, as devices that can't run the scene see it.
 //
 // usage: node scripts/check-contrast.mjs [baseUrl] [path ...]
 //   default: http://localhost:4321 and every page in dist/ (build first)
@@ -49,7 +52,9 @@ function builtPaths() {
     }
   }
   if (existsSync('dist')) walk('dist')
-  return pages.sort()
+  pages.sort()
+  if (pages.includes('/')) pages.splice(pages.indexOf('/') + 1, 0, '/?scene=off')
+  return pages
 }
 const paths = argPaths.length ? argPaths : builtPaths()
 if (paths.length === 0) {

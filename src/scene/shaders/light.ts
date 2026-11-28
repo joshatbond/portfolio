@@ -1,34 +1,37 @@
 // The frame LEDs' light falling into murky water, marched along each view
-// ray. Light from a strip enters the water just inside the frame, where the
-// surface acts as a lens: crests focus it into beams, troughs spread it, and
-// the further it travels the stronger that gets. Murky water scatters a little
-// of it toward the camera at every step, and swallows it with distance.
-// The deep text hangs at its own depth behind the light.
+// ray through the top few hundred px of it. Light from a strip enters the
+// water just inside the frame, where the surface's broad swells gather it
+// into soft brightenings or spread it thin. The murk scatters a little of it
+// toward the camera at every step and swallows it with distance; drifting
+// clouds of it thicken and thin the glow, and are faintly lit everywhere.
+// Around the name and title the water thickens, so they stay readable.
 
 export const lightFrag = /* glsl */ `
-uniform sampler2D tCurv;
+uniform sampler2D tCurv;      // curvature of the surface's swells
 uniform sampler2D tPrev;      // last frame's result: the light settles over a few frames
 uniform float uBlend;         // share of this frame in the result
-uniform sampler2D tName;
-uniform vec4 uNameRect;     // name plane, world px: min x, min y, max x, max y
-uniform float uNameDepth;
-uniform float uNameDim;
-uniform vec2 uHalf;         // half the frame, world px
-uniform float uSimScale;    // frame size / sim size
+uniform vec4 uPocket;         // around the text, world px at the surface: centre x, y, radius x, y
+uniform float uPocketFeather; // fraction of the radius the edge fades over
+uniform float uPocketFloor;
+uniform vec2 uHalf;           // half the frame, world px
+uniform float uSimScale;      // frame size / sim size
 uniform float uCamZ;
 uniform float uMaxDepth;
 uniform float uReach;
 uniform float uLedHeight;
 uniform float uLobe;
 uniform float uLensGain;
+uniform float uLensMax;
 uniform float uExtinction;
 uniform float uFalloff;
 uniform float uIntensity;
 uniform float uSeed;
+uniform float uTime;
+uniform vec4 uMurk;           // 1 / scale (px), amount, ambient, drift (px/s)
 varying vec2 vUv;
 
 #ifndef STEPS
-#define STEPS 28
+#define STEPS 14
 #endif
 
 float hash12(vec2 p) {
@@ -37,12 +40,30 @@ float hash12(vec2 p) {
   return fract((p3.x + p3.y) * p3.z);
 }
 
-// Focusing of the surface where the light came through.
-float lens(vec2 entry, float water) {
+float noise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(hash12(i), hash12(i + vec2(1.0, 0.0)), u.x),
+    mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), u.x),
+    u.y);
+}
+
+// Clouds of murk, 0..1, each layer drifting its own way.
+float murk(vec2 p) {
+  vec2 q = p * uMurk.x;
+  vec2 d = vec2(uTime * uMurk.w * uMurk.x);
+  return 0.55 * noise(q + d * vec2(1.0, 0.6))
+       + 0.30 * noise(q * 2.03 + d * vec2(-0.8, 1.1) + 7.3)
+       + 0.15 * noise(q * 4.11 + d * vec2(1.3, -0.9) + 13.7);
+}
+
+// How the swells where the light came through gather or spread it.
+float lens(vec2 entry) {
   vec2 uv = entry / (uHalf * 2.0) * uSimScale + 0.5;
   float lap = texture2D(tCurv, uv).r;
-  float spread = 1.0 + lap * uLensGain * water;
-  return pow(clamp(1.0 / max(abs(spread), 0.08), 0.0, 6.0), 1.3);
+  return pow(uLensMax, tanh(-lap * uLensGain));
 }
 
 // Light from one strip of the frame reaching p. A strip runs along the x edge
@@ -58,7 +79,7 @@ float strip(vec3 p, float side, int axis) {
   float k = uLedHeight / (uLedHeight + depth);  // where the ray crosses the surface
   vec2 entry = q.xy + v.xy * k;
   float water = d * (1.0 - k);
-  return lobe * lens(entry, water) * exp(-uExtinction * water) / (1.0 + water * uFalloff);
+  return lobe * lens(entry) * exp(-uExtinction * water) / (1.0 + water * uFalloff);
 }
 
 void main() {
@@ -79,18 +100,37 @@ void main() {
     light += l * dt;
     t += dt;
   }
-  vec3 col = vec3(0.133, 0.827, 0.933) * light * uIntensity;
-
-  // The name and title, deep in the water, behind the light.
-  float tn = uNameDepth / -rd.z;
-  vec2 pn = (ro + rd * tn).xy;
-  vec2 nuv = (pn - uNameRect.xy) / (uNameRect.zw - uNameRect.xy);
-  if (nuv.x >= 0.0 && nuv.y >= 0.0 && nuv.x <= 1.0 && nuv.y <= 1.0) {
-    vec4 n = texture2D(tName, nuv);
-    col += n.rgb * n.a * uNameDim;
+  float m = murk(s);
+  light *= 1.0 + (m - 0.5) * 2.0 * uMurk.y;
+  // The frame's light thins out around the text: an ellipse, frayed by the
+  // murk (only ever outward, so the text always sits inside it).
+  if (uPocket.z > 0.0) {
+    float d = length((s - uPocket.xy) / uPocket.zw) - m * 0.35;
+    light *= mix(uPocketFloor, 1.0, smoothstep(1.0, 1.0 + uPocketFeather, d));
   }
+  vec3 col = vec3(0.133, 0.827, 0.933) * light * uIntensity;
+  // The murk itself, faintly lit: the water never goes dead black.
+  col += vec3(0.010, 0.045, 0.052) * uMurk.z * (0.4 + m);
+
   // The camera never moves, so averaging over frames turns the march's
   // jitter into a clean, softly moving light.
   gl_FragColor = vec4(mix(texture2D(tPrev, vUv).rgb, col, uBlend), 1.0);
+}
+`
+
+/** One direction of a soft Gaussian blur over the finished light. */
+export const lightBlurFrag = /* glsl */ `
+uniform sampler2D tLight;
+uniform vec2 uStep;   // uv between taps
+varying vec2 vUv;
+void main() {
+  vec3 c = vec3(0.0);
+  float w = 0.0;
+  for (int i = -4; i <= 4; i++) {
+    float k = exp(-float(i * i) / 8.0);
+    c += texture2D(tLight, vUv + uStep * float(i)).rgb * k;
+    w += k;
+  }
+  gl_FragColor = vec4(c / w, 1.0);
 }
 `

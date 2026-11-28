@@ -42,12 +42,22 @@ const [first, ...rest] = site.name.split(' ')
     gl?.getExtension('WEBGL_lose_context')?.loseContext()
     return ok
   }
-  // ?capture=chips|empty renders a still for scripts/render-pool-still.mjs.
-  const capture = new URLSearchParams(location.search).get('capture')
-  if (el && capture) {
+  // For the scripts: ?capture=chips|empty renders a still to save
+  // (render-pool-still.mjs), ?capture=glow the page's still with only its
+  // name and title's glow (check-scene-text.mjs), and ?scene=off keeps the page's
+  // fallback, as on devices that can't run the scene (check-contrast.mjs).
+  const params = new URLSearchParams(location.search)
+  const capture = params.get('capture')
+  const captures = {
+    chips: { name: false, led: false },
+    empty: { name: false, led: false, chips: false },
+    glow: { glyphs: false },
+  }
+  if (el && capture && capture in captures) {
+    await document.fonts.ready
     const { mountScene } = await import('../scene')
-    mountScene(el, { motion: false, capture: { chips: capture === 'chips' } })
-  } else if (el && !saveData && !lowPower && canRun()) {
+    mountScene(el, { motion: false, capture: captures[capture as keyof typeof captures] })
+  } else if (el && params.get('scene') !== 'off' && !saveData && !lowPower && canRun()) {
     await document.fonts.ready
     const { mountScene } = await import('../scene')
     // Reduced motion: the Still frame, rendered once.
@@ -82,15 +92,21 @@ const [first, ...rest] = site.name.split(' ')
   }
 
   /* Once the scene draws the name and title in the water, the DOM copy stays
-     for screen readers but stops painting. */
+     for screen readers but stops painting: once the scene has fully faded
+     in, so the text never shows through a half-faded canvas. */
   html[data-scene='ready'] .abyss .name,
   html[data-scene='ready'] .abyss .role {
     color: transparent;
     text-shadow: none;
+    transition:
+      color 0s 600ms,
+      text-shadow 0s 600ms;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .pool-scene {
+    .pool-scene,
+    html[data-scene='ready'] .abyss .name,
+    html[data-scene='ready'] .abyss .role {
       transition: none;
     }
   }

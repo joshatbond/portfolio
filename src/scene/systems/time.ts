@@ -5,7 +5,8 @@ export function timeSystem(): System {
   return {
     update(world) {
       const now = performance.now()
-      world.time.delta = Math.min(0.05, (now - world.time.then) / 1000)
+      // Reduced motion: time stands still.
+      world.time.delta = world.frozen ? 0 : Math.min(0.05, (now - world.time.then) / 1000)
       world.time.elapsed += world.time.delta
       world.time.then = now
     },

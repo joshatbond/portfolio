@@ -3,10 +3,11 @@ import { site } from '../../config/site'
 import { Bob, Bubble, Chip, Home, Mode, Position, Rotation, State, Velocity } from '../chips/components'
 import { chipKeys } from '../chips/geometry'
 import { config } from '../config'
-import type { SceneWorld, System } from '../world'
+import { random } from '../random'
+import { localRect, type SceneWorld, type System } from '../world'
 
 const C = config.chips
-const rand = ([a, b]: readonly [number, number] | readonly number[]) => a + Math.random() * (b - a)
+const rand = ([a, b]: readonly [number, number] | readonly number[]) => a + random() * (b - a)
 const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2)
 const terms = [Chip, Position, Velocity, Rotation, Home, Bob, State]
 
@@ -32,10 +33,10 @@ function spawn(world: SceneWorld) {
     Position.y[eid] = Home.y[eid]
     Position.z[eid] = -C.surfaceDepth
     Velocity.x[eid] = Velocity.y[eid] = Velocity.z[eid] = 0
-    Bob.phase[eid] = Math.random() * Math.PI * 2
+    Bob.phase[eid] = random() * Math.PI * 2
     Bob.period[eid] = rand(C.bob.period)
     Bob.amplitude[eid] = rand(C.bob.amplitude)
-    Bob.ripple[eid] = rand(C.ripple.every) * Math.random()
+    Bob.ripple[eid] = rand(C.ripple.every) * random()
     State.mode[eid] = Mode.STILL
     State.time[eid] = 0
   })
@@ -69,7 +70,7 @@ function startDive(world: SceneWorld, eid: number, from: { x: number; y: number 
   State.mode[eid] = Mode.DIVE
   State.time[eid] = 0
   State.duration[eid] = rand(C.dive.duration)
-  State.band[eid] = Math.random() < 0.5 ? 0 : 1
+  State.band[eid] = random() < 0.5 ? 0 : 1
   State.fromZ[eid] = Position.z[eid]
   const dx = Position.x[eid] - from.x
   const dy = Position.y[eid] - from.y
@@ -77,9 +78,9 @@ function startDive(world: SceneWorld, eid: number, from: { x: number; y: number 
   const speed = rand(C.dive.scatter)
   Velocity.x[eid] = (dx / len) * speed
   Velocity.y[eid] = (dy / len) * speed
-  Rotation.sx[eid] = (Math.random() - 0.5) * 9
-  Rotation.sy[eid] = (Math.random() - 0.5) * 9
-  Rotation.sz[eid] = (Math.random() - 0.5) * 6
+  Rotation.sx[eid] = (random() - 0.5) * 9
+  Rotation.sy[eid] = (random() - 0.5) * 9
+  Rotation.sz[eid] = (random() - 0.5) * 6
   drop(world, eid, 0.03, C.dive.splash)
   // A burst of bubbles where it went under.
   for (let i = 0; i < C.bubbles.perDive; i++) {
@@ -87,11 +88,11 @@ function startDive(world: SceneWorld, eid: number, from: { x: number; y: number 
     addComponent(world, b, Position)
     addComponent(world, b, Velocity)
     addComponent(world, b, Bubble)
-    Position.x[b] = Position.x[eid] + (Math.random() - 0.5) * 40
-    Position.y[b] = Position.y[eid] + (Math.random() - 0.5) * 40
-    Position.z[b] = Position.z[eid] - Math.random() * 30
-    Velocity.x[b] = (Math.random() - 0.5) * 120 + Velocity.x[eid] * 0.2
-    Velocity.y[b] = (Math.random() - 0.5) * 120 + Velocity.y[eid] * 0.2
+    Position.x[b] = Position.x[eid] + (random() - 0.5) * 40
+    Position.y[b] = Position.y[eid] + (random() - 0.5) * 40
+    Position.z[b] = Position.z[eid] - random() * 30
+    Velocity.x[b] = (random() - 0.5) * 120 + Velocity.x[eid] * 0.2
+    Velocity.y[b] = (random() - 0.5) * 120 + Velocity.y[eid] * 0.2
     Velocity.z[b] = rand(C.bubbles.rise)
     Bubble.age[b] = 0
     Bubble.life[b] = rand(C.bubbles.life)
@@ -257,8 +258,9 @@ export function chipsSystem(): System {
       // What the school keeps clear of, in world px at the surface.
       const { width: W, height: H } = world.viewport
       world.keepOut = ['.abyss', '.pills']
-        .map((sel) => document.querySelector(sel)?.getBoundingClientRect())
-        .filter((r): r is DOMRect => Boolean(r))
+        .map((sel) => document.querySelector(sel))
+        .filter((el): el is Element => Boolean(el))
+        .map((el) => localRect(world, el))
         .map((r) => ({ x0: r.left - W / 2, x1: r.right - W / 2, y0: H / 2 - r.bottom, y1: H / 2 - r.top }))
     },
     update(world) {

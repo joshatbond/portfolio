@@ -12,7 +12,12 @@ export function inputSystem(): System {
     resize(world) {
       if (detach) return
       const { input } = world
-      const toUv = (e: PointerEvent) => ({ x: e.clientX / innerWidth, y: 1 - e.clientY / innerHeight })
+      // The pool can be taller than the viewport (short screens scroll), so
+      // map through its current box.
+      const toUv = (e: PointerEvent) => {
+        const r = world.container.getBoundingClientRect()
+        return { x: (e.clientX - r.left) / r.width, y: 1 - (e.clientY - r.top) / r.height }
+      }
       const onMove = (e: PointerEvent) => {
         input.moves.push(toUv(e))
         input.lastAt = performance.now()

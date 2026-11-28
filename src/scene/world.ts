@@ -38,8 +38,29 @@ export interface SceneContext {
   chips: { target: WebGLRenderTarget | null }
   /** Chip components, registered with the world. */
   components: typeof components
-  /** Rendering a still to save as an image: no deep text, no LEDs, chips optional. */
-  capture: { chips: boolean } | null
+  /** Rendering a still to save or compare: what to leave out. */
+  capture: Capture | null
+  /** Reduced motion: time stands still; the water and chips don't move. */
+  frozen: boolean
+  /** The element the scene fills; DOM positions are measured against it. */
+  container: HTMLElement
+}
+
+export interface Capture {
+  chips: boolean
+  /** The name and title in the deep. */
+  name: boolean
+  /** false: only the name and title's glow, not their letters (to measure what they're read against). */
+  glyphs: boolean
+  /** The frame's LED strips. */
+  led: boolean
+}
+
+/** An element's box relative to the scene's container, in CSS px (top-left origin). */
+export function localRect(world: { container: HTMLElement }, el: Element) {
+  const c = world.container.getBoundingClientRect()
+  const r = el.getBoundingClientRect()
+  return new DOMRect(r.left - c.left, r.top - c.top, r.width, r.height)
 }
 
 export type SceneWorld = World<SceneContext>
@@ -52,7 +73,11 @@ export interface System {
   dispose?(world: SceneWorld): void
 }
 
-export function createSceneWorld(gpu: SceneContext['gpu'], capture: SceneContext['capture'] = null): SceneWorld {
+export function createSceneWorld(
+  gpu: SceneContext['gpu'],
+  container: HTMLElement,
+  { capture = null, frozen = false }: { capture?: Capture | null; frozen?: boolean } = {},
+): SceneWorld {
   return createWorld<SceneContext>({
     time: { delta: 0, elapsed: 0, then: performance.now() },
     viewport: { width: 1, height: 1, dpr: 1, mobile: false },
@@ -66,5 +91,7 @@ export function createSceneWorld(gpu: SceneContext['gpu'], capture: SceneContext
     chips: { target: null },
     components,
     capture,
+    frozen,
+    container,
   })
 }

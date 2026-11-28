@@ -59,7 +59,31 @@ void main() {
 }
 `
 
-/** Curvature (Laplacian) of the surface: how it focuses or spreads light. */
+/**
+ * One direction of a wide Gaussian blur of the height (r), drawn into a
+ * smaller target: the surface's broad swells, without its ripples.
+ */
+export const swellFrag = /* glsl */ `
+uniform sampler2D tSim;
+uniform vec2 uStep;   // uv between taps, along the blur's direction
+varying vec2 vUv;
+void main() {
+  float h = 0.0;
+  float w = 0.0;
+  for (int i = -6; i <= 6; i++) {
+    float k = exp(-float(i * i) / 18.0);
+    h += texture2D(tSim, vUv + uStep * float(i)).r * k;
+    w += k;
+  }
+  gl_FragColor = vec4(h / w, 0.0, 0.0, 1.0);
+}
+`
+
+/**
+ * Curvature (Laplacian) of the swells: where the surface gathers the light
+ * into broad, soft brightenings or spreads it thin. Taken over a wide
+ * stencil of the blurred height, so ripples never focus it into lines.
+ */
 export const curvatureFrag = /* glsl */ `
 uniform sampler2D tSim;
 uniform vec2 uDelta;

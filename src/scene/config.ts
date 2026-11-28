@@ -26,6 +26,13 @@ export const config = {
     stepsPerFrame: 2,
     /** Sim steps run on load so the water is already alive on the first frame. */
     prewarm: 400,
+    /**
+     * The broad swells that bend the light: the height blurred (taps every
+     * `spacing` cells, so about 2·spacing cells wide), kept at 1/`downsample`
+     * of the sim, and its curvature taken `stencil` texels apart. Ripples
+     * smaller than this never focus the light.
+     */
+    swell: { spacing: 2, downsample: 4, stencil: 1.5 },
   },
 
   /** A tub is never glass-still: a constant, gentle stir. */
@@ -38,41 +45,69 @@ export const config = {
 
   light: {
     /** Fraction of the device pixel size the light volume renders at (it's soft). */
-    resolution: 0.5,
+    resolution: 0.25,
     /** Share of each new frame in the light (the rest is the running average). */
     temporalBlend: 0.12,
-    steps: { desktop: 28, mobile: 20 },
-    /** How far below the surface the volume is marched (px). */
-    maxDepth: 1100,
+    /** Blur over the finished light, in light texels (×4 CSS px at full scale). */
+    blur: 2.5,
+    steps: { desktop: 14, mobile: 10 },
+    /** How far below the surface the volume is marched (px): murky water swallows the rest. */
+    maxDepth: 320,
     /**
      * Distances below are for a window whose short side is `referenceSide`
      * px; they scale with the window so the light keeps to the frame on phones.
      */
     referenceSide: 900,
     /** Only frame strips within this distance light a sample (px). */
-    reach: 460,
+    reach: 520,
     /** The LEDs sit this far above the water, in the frame (px). */
     ledHeight: 60,
     /** Higher aims the LEDs more steeply down. */
-    lobe: 2,
-    /** How strongly the surface's curvature focuses the light into beams. */
-    lensGain: 260,
+    lobe: 1.4,
+    /**
+     * How strongly the swells bend the light: broad, soft brightening where
+     * they gather it and dimming where they spread it, at most `lensMax`×
+     * either way.
+     */
+    lensGain: 1800,
+    lensMax: 1.5,
     /** Murky water: light lost per px travelled. Keeps the glow near the frame. */
-    extinction: 1 / 95,
+    extinction: 1 / 110,
     /** Geometric spreading per px travelled. */
-    falloff: 0.008,
+    falloff: 0.006,
     intensity: 0.0045,
+    /**
+     * Drifting murk: clouds in the water (about `scale` px across) that thicken
+     * and thin the glow by up to ±`amount` and are faintly lit everywhere
+     * (`ambient`), so the middle still reads as water. `drift` is px/s.
+     */
+    murk: { scale: 520, amount: 0.35, ambient: 1.6, drift: 9 },
   },
 
   surface: {
     /** Screen-space refraction of everything below. */
     refract: 0.02,
-    /** How far in from the frame its reflections reach on the crests (px, by screen size). */
+    /** How far in from the frame its reflections are strongest (px, by screen size). */
     edgeFalloff: { min: 48, max: 160, ofShortSide: 0.12 },
+    /**
+     * The LEDs glinting on the ripples: from `slope[0]` to full at
+     * `slope[1]`, at `midWater` of their strength away from the frame.
+     */
+    glint: { slope: [0.008, 0.04] as [number, number], midWater: 0.3, strength: 0.55 },
   },
 
   /** The name and title in the deep: pool/paint seen through the water. */
-  abyss: { dim: 0.56 },
+  abyss: {
+    dim: 0.56,
+    /**
+     * The water thickens around the name and title: an ellipse around them
+     * (padded by `pad` px, its edge softened over `feather` of its radius and
+     * frayed by the murk) where the light falls to `floor` of its strength.
+     * It keeps them at the contrast floor on narrow screens, where the side
+     * strips' light meets in the middle.
+     */
+    pocket: { pad: 24, feather: 1.1, floor: 0.3 },
+  },
 
   chips: {
     /**
@@ -106,7 +141,13 @@ export const config = {
     /** Pointer contact within this distance (px) makes a chip dive. */
     disturbRadius: 350,
     dive: { duration: [0.4, 0.7], bands: [160, 420], scatter: [220, 420], splash: 0.0028 },
-    bubbles: { perDive: 10, life: [0.6, 1.2], rise: [120, 240], size: [3, 7] },
+    bubbles: {
+      perDive: 10,
+      life: [0.6, 1.2],
+      rise: [120, 240],
+      /** Diameter just under the surface (CSS px); deeper bubbles look smaller. */
+      size: 5,
+    },
     school: {
       speed: [130, 95],
       separation: 90,

@@ -43,12 +43,13 @@ void main() {
 // Bubbles: soft, pale points, smaller and dimmer with depth, fading as they age.
 export const bubbleVert = /* glsl */ `
 attribute float aFade;
-uniform float uScale;
+uniform float uSize;      // device px at the surface
+uniform float uDistance;  // camera height above the surface
 varying float vFade;
 void main() {
   vec4 mv = modelViewMatrix * vec4(position, 1.0);
   vFade = aFade;
-  gl_PointSize = uScale * 900.0 / -mv.z;
+  gl_PointSize = uSize * uDistance / -mv.z;
   gl_Position = projectionMatrix * mv;
 }
 `

@@ -15,7 +15,8 @@
     "check:contrast": "node scripts/check-contrast.mjs",
     "screenshot": "node scripts/screenshot.mjs",
     "astro": "astro",
-    "check:a11y": "node scripts/check-a11y.mjs"
+    "check:a11y": "node scripts/check-a11y.mjs",
+    "check:scene-text": "node scripts/check-scene-text.mjs"
   },
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",

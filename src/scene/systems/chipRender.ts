@@ -43,7 +43,7 @@ export function chipRenderSystem(): System {
   const bubbleMaterial = new ShaderMaterial({
     vertexShader: bubbleVert,
     fragmentShader: bubbleFrag,
-    uniforms: { uScale: { value: 9 } },
+    uniforms: { uSize: { value: config.chips.bubbles.size }, uDistance: { value: 1240 } },
     transparent: true,
     depthWrite: false,
     blending: CustomBlending,
@@ -72,6 +72,8 @@ export function chipRenderSystem(): System {
       camera.lookAt(0, 0, 0)
       camera.updateProjectionMatrix()
       material.uniforms.uHalf.value.set(W / 2, H / 2)
+      bubbleMaterial.uniforms.uSize.value = config.chips.bubbles.size * dpr
+      bubbleMaterial.uniforms.uDistance.value = P
       target?.dispose()
       target = new WebGLRenderTarget(Math.round(W * dpr), Math.round(H * dpr), { samples: 4 })
       world.chips.target = target
