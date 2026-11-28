@@ -373,7 +373,7 @@ const inSight = (school: number[], eid: number) =>
 /** A new depth for a fish: mostly shallow, and shallow for sure while too few others would be seen. */
 function newDepth(school: number[], eid: number) {
   const D = S.depth
-  const [lo, hi] = inSight(school, eid) < D.visible * school.length ? [D.band[0], D.visibleDepth] : D.band
+  const [lo, hi] = inSight(school, eid) < D.visible * (school.length - 1) ? [D.band[0], D.visibleDepth] : D.band
   return lo + (hi - lo) * random() ** D.bias
 }
 
@@ -429,7 +429,7 @@ function swim(world: SceneWorld, eid: number, school: number[], dt: number, s: n
       const drift = pace * S.kick.drift
       v = drift + (v - drift) * Math.exp(-dt / S.kick.coast)
       const level = 1 - Math.exp(-S.level * dt)
-      if (fleeing) Fish.pitch[eid] -= Fish.pitch[eid] * (depth >= Fish.depth[eid] ? 1 - Math.exp(-8 * dt) : level)
+      if (fleeing) Fish.pitch[eid] -= Fish.pitch[eid] * level
       else {
         // Holding its line, only easing clear of the others (up or down too)
         // and back into its water, and levelling out.
@@ -438,6 +438,8 @@ function swim(world: SceneWorld, eid: number, school: number[], dt: number, s: n
         Fish.pitch[eid] += (f.z * S.climb * 0.5 - Fish.pitch[eid]) * level
         Fish.kick[eid] = kick + dt
       }
+      // Gliding past the depth it's making for (a press's dive included), it levels out quickly.
+      if (Fish.pitch[eid] < 0 ? depth >= Fish.depth[eid] : depth <= Fish.depth[eid]) Fish.pitch[eid] *= Math.exp(-8 * dt)
       if (Fish.kick[eid] >= 0) {
         // The next kick, aimed where it wants to go, a swerve off that, and up or down.
         const f = steer(world, eid, school, s, true)
@@ -465,7 +467,7 @@ function swim(world: SceneWorld, eid: number, school: number[], dt: number, s: n
         if (near > S.cohesion * s) continue
         const depth = clamp(target + (random() - 0.5) * 80, S.depth.band[0], S.depth.band[1])
         // Not down out of sight, though, if that leaves too few to be seen.
-        if (depth >= S.depth.visibleDepth && inSight(school, o) < S.depth.visible * school.length) continue
+        if (depth >= S.depth.visibleDepth && inSight(school, o) < S.depth.visible * (school.length - 1)) continue
         Fish.depth[o] = depth
         Fish.redepth[o] = rand(S.depth.every)
       }
