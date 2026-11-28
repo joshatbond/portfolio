@@ -115,7 +115,7 @@ export const config = {
      */
     current: { wavelength: [280, 720] as [number, number], speed: 14, turnover: 26, lift: 0.35 },
     /** Moving slowly forward: everything drifts toward the window (px/s). */
-    approach: 16,
+    approach: 70,
     /** How quickly a speck takes up the water's motion (per s): its inertia. */
     drag: 1.2,
     /**
