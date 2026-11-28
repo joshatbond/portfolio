@@ -162,11 +162,10 @@ function arrive(world: SceneWorld) {
 
   for (const f of fish) {
     const eid = addChip(world, f.key, true)
-    Fish.cruise[eid] = rand(S.cruise)
-    Fish.phase[eid] = random() * TAU
-    Fish.redepth[eid] = rand(S.redepth)
-    Fish.burst[eid] = -rand(S.burst.every)
-    Fish.wag[eid] = random() * TAU
+    Fish.pace[eid] = rand(S.pace)
+    Fish.redepth[eid] = rand(S.depth.every)
+    Fish.kick[eid] = 0
+    Fish.pitch[eid] = 0
     Fish.bank[eid] = 0
     Fish.age[eid] = 0
     Fish.delay[eid] = f.delay
@@ -204,8 +203,8 @@ function arrive(world: SceneWorld) {
     const gk = depthScale(world, goalDepth)
     Fish.heading[eid] = Math.atan2(f.home.y * gk - y, f.home.x * gk - x)
     const boost = f.role === 'behind' ? A.behindBoost : A.boost
-    Velocity.x[eid] = Math.cos(Fish.heading[eid]) * Fish.cruise[eid] * s * boost
-    Velocity.y[eid] = Math.sin(Fish.heading[eid]) * Fish.cruise[eid] * s * boost
+    Velocity.x[eid] = Math.cos(Fish.heading[eid]) * Fish.pace[eid] * s * boost
+    Velocity.y[eid] = Math.sin(Fish.heading[eid]) * Fish.pace[eid] * s * boost
     Fish.boost[eid] = boost
   }
 }
@@ -256,7 +255,7 @@ function bubbles(world: SceneWorld, dt: number) {
   }
 }
 
-/** A press nearby: the fish darts away from it and dives, the shallow ones loosing bubbles. */
+/** A press nearby: the fish kicks away from it and dives, the shallow ones loosing bubbles. */
 function startle(world: SceneWorld, eid: number, press: { x: number; y: number }, s: number) {
   const depth = -Position.z[eid]
   const k = depthScale(world, depth)
@@ -269,172 +268,217 @@ function startle(world: SceneWorld, eid: number, press: { x: number; y: number }
   const fright = 1 - d / reach
   const heading = Math.atan2(dy, dx) + (random() - 0.5) * 0.8
   const speed = rand(C.scatter.speed) * s * (0.65 + 0.35 * fright)
-  Fish.heading[eid] = heading
-  Fish.flee[eid] = Fish.fleeTime[eid] = C.scatter.time * (0.75 + 0.4 * fright)
-  Fish.fleeSpeed[eid] = speed
+  // It turns away at once and kicks off hard, nose down.
+  Fish.heading[eid] = Fish.turnTo[eid] = heading
+  Fish.pitch[eid] = Fish.pitchTo[eid] = -S.climb * (0.6 + 0.4 * fright)
+  Fish.kick[eid] = S.kick.length * 1.4
+  Fish.kickSpeed[eid] = speed
+  Fish.flee[eid] = C.scatter.time * (0.75 + 0.4 * fright)
   Fish.entering[eid] = 0
   Fish.depth[eid] = depth + C.scatter.dive * (0.5 + 0.5 * fright)
-  Fish.redepth[eid] = rand(S.redepth)
-  Fish.burst[eid] = -rand(S.burst.every)
-  // It kicks off at full speed at once.
-  Velocity.x[eid] = Math.cos(heading) * speed
-  Velocity.y[eid] = Math.sin(heading) * speed
-  Velocity.z[eid] = -(C.scatter.dive / C.scatter.time) * (0.5 + fright)
+  Fish.redepth[eid] = rand(S.depth.every)
+  setVelocity(eid, speed * 0.7)
   if (depth < C.bubbles.from) loose(world, eid, Math.max(1, Math.round(C.bubbles.perDart * (1 - depth / C.bubbles.from))))
+}
+
+/** Velocity along the fish's heading and pitch. */
+function setVelocity(eid: number, speed: number) {
+  const h = Fish.heading[eid]
+  const p = Fish.pitch[eid]
+  Velocity.x[eid] = Math.cos(h) * Math.cos(p) * speed
+  Velocity.y[eid] = Math.sin(h) * Math.cos(p) * speed
+  Velocity.z[eid] = Math.sin(p) * speed
+}
+
+/**
+ * Where a fish wants to go, from where it's heading now, its neighbours, its
+ * spot and the window's edges: a direction across the view (x, y) and a
+ * climb (+) or dive (−) from -1 to 1 (z). Gliding (`full` false), only what
+ * keeps it clear of the others and in its water counts.
+ */
+function steer(world: SceneWorld, eid: number, school: number[], s: number, full: boolean) {
+  const px = Position.x[eid]
+  const py = Position.y[eid]
+  const pz = Position.z[eid]
+  const k = depthScale(world, -pz)
+  const h = Fish.heading[eid]
+  let fx = Math.cos(h)
+  let fy = Math.sin(h)
+  // Loosely schooling, in three dimensions: room from near neighbours,
+  // swimming their way, drifting together.
+  let sx = 0, sy = 0, sz = 0, ax = 0, ay = 0, ap = 0, cx = 0, cy = 0, cz = 0, na = 0, nc = 0
+  for (const o of school) {
+    if (o === eid || Fish.entering[o]) continue
+    const dx = Position.x[o] - px
+    const dy = Position.y[o] - py
+    const dz = Position.z[o] - pz
+    const d = Math.hypot(dx, dy, dz)
+    if (d < S.separation * s && d > 0) {
+      const w = 1 - d / (S.separation * s)
+      sx -= (dx / d) * w
+      sy -= (dy / d) * w
+      sz -= (dz / d) * w
+    }
+    if (d < S.alignment * s) {
+      ax += Math.cos(Fish.heading[o])
+      ay += Math.sin(Fish.heading[o])
+      ap += Math.sin(Fish.pitch[o])
+      na++
+    }
+    if (d < S.cohesion * s) {
+      cx += dx
+      cy += dy
+      cz += dz
+      nc++
+    }
+  }
+  fx += sx * 3
+  fy += sy * 3
+  let fz = sz * 3
+  if (full) {
+    if (na) {
+      fx += (ax / na) * 0.4
+      fy += (ay / na) * 0.4
+      fz += (ap / na) * 0.6
+    }
+    if (nc) {
+      fx += (cx / nc / (S.cohesion * s)) * 0.4
+      fy += (cy / nc / (S.cohesion * s)) * 0.4
+      fz += (cz / nc / (S.cohesion * s)) * 1.2
+    }
+    // Toward the depth it's making for.
+    fz += (-Fish.depth[eid] - pz) / 160
+  }
+  // It keeps to the water around its spot, turning back once it's strayed,
+  const hx = Fish.homeX[eid] * k - px
+  const hy = Fish.homeY[eid] * k - py
+  const away = Math.hypot(hx, hy) || 1
+  const range = S.range * world.viewport.width * k
+  const pull = smoothstep(range * 0.6, range * 1.4, away) * 2.5
+  fx += (hx / away) * pull
+  fy += (hy / away) * pull
+  // and roams past the window's edges, but not far.
+  const limX = (world.viewport.width / 2) * k
+  const limY = (world.viewport.height / 2) * k
+  fx -= Math.sign(px) * smoothstep(0.75, 1 + S.roam, Math.abs(px) / limX) * 4
+  fy -= Math.sign(py) * smoothstep(0.75, 1 + S.roam, Math.abs(py) / limY) * 4
+  return { x: fx, y: fy, z: clamp(fz, -1, 1) }
+}
+
+/** How many of the fish, besides `eid`, are making for a depth where they can be seen. */
+const inSight = (school: number[], eid: number) =>
+  school.filter((o) => o !== eid && Fish.depth[o] < S.depth.visibleDepth).length
+
+/** A new depth for a fish: mostly shallow, and shallow for sure while too few others would be seen. */
+function newDepth(school: number[], eid: number) {
+  const D = S.depth
+  const [lo, hi] = inSight(school, eid) < D.visible * school.length ? [D.band[0], D.visibleDepth] : D.band
+  return lo + (hi - lo) * random() ** D.bias
 }
 
 /** One fish's steering and stroke for this frame. */
 function swim(world: SceneWorld, eid: number, school: number[], dt: number, s: number) {
-  const t = world.time.elapsed
-  const px = Position.x[eid]
-  const py = Position.y[eid]
   const pz = Position.z[eid]
   const depth = -pz
-  const k = depthScale(world, depth)
-  const h = Fish.heading[eid]
-  const ph = Fish.phase[eid]
-  const cruise = Fish.cruise[eid] * s
-  const fleeing = Fish.flee[eid] > 0
-  const entering = Fish.entering[eid] > 0
+  const pace = Fish.pace[eid] * s
+  const before = Fish.heading[eid]
 
-  // Where it wants to go: on, unless something turns it.
-  let fx = Math.cos(h)
-  let fy = Math.sin(h)
-  let speed = cruise * (1 + 0.15 * Math.sin(t * 0.41 + ph))
-  let rise = clamp((-Fish.depth[eid] - pz) * 0.6, -45, 45) * s
-  let agility = S.agility
-
-  if (entering) {
-    // Making for its spot, slowing as it nears it.
+  if (Fish.entering[eid] > 0) {
+    // Swimming in, making for its spot and slowing as it nears it.
     const gk = depthScale(world, -Fish.goalZ[eid])
-    const gx = Fish.homeX[eid] * gk - px
-    const gy = Fish.homeY[eid] * gk - py
+    const gx = Fish.homeX[eid] * gk - Position.x[eid]
+    const gy = Fish.homeY[eid] * gk - Position.y[eid]
     const gz = Fish.goalZ[eid] - pz
     const dist = Math.hypot(gx, gy)
-    fx += (gx / (dist || 1)) * 3
-    fy += (gy / (dist || 1)) * 3
-    speed *= 1 + (Fish.boost[eid] - 1) * smoothstep(0, 320 * s, dist + Math.abs(gz) * 0.5)
+    const want = Math.atan2(Math.sin(before) + (gy / (dist || 1)) * 3, Math.cos(before) + (gx / (dist || 1)) * 3)
+    const heading = before + turn(before, want) * (1 - Math.exp(-C.arrive.agility * dt))
+    Fish.heading[eid] = ((heading % TAU) + TAU) % TAU
+    const speed = pace * (1 + (Fish.boost[eid] - 1) * smoothstep(0, 320 * s, dist + Math.abs(gz) * 0.5))
     const climb = C.arrive.climb
     const rate = Fish.entering[eid] === Role.deep ? climb.deep : Fish.entering[eid] === Role.behind ? climb.behind : climb.side
-    rise = clamp(gz * rate, -climb.max, climb.max)
-    if ((dist < 110 * s && Math.abs(gz) < 140) || Fish.age[eid] - Fish.delay[eid] > 12) Fish.entering[eid] = 0
-  } else if (fleeing) {
-    // Darting away, holding its line, and easing back to a cruise.
-    Fish.flee[eid] -= dt
-    const left = clamp(Fish.flee[eid] / Fish.fleeTime[eid], 0, 1)
-    speed = cruise + (Fish.fleeSpeed[eid] - cruise) * left * left
-    rise = clamp((-Fish.depth[eid] - pz) * 2.5, -C.scatter.dive * 2, 0)
+    let v = Math.hypot(Velocity.x[eid], Velocity.y[eid])
+    v += (speed - v) * (1 - Math.exp(-(speed > v ? 5 : 1.6) * dt))
+    Velocity.x[eid] = Math.cos(Fish.heading[eid]) * v
+    Velocity.y[eid] = Math.sin(Fish.heading[eid]) * v
+    Velocity.z[eid] += (clamp(gz * rate, -climb.max, climb.max) - Velocity.z[eid]) * (1 - Math.exp(-2.5 * dt))
+    Fish.pitch[eid] = Math.atan2(Velocity.z[eid], Math.max(v, 1))
+    if ((dist < 110 * s && Math.abs(gz) < 140) || Fish.age[eid] - Fish.delay[eid] > 12) {
+      // There: it glides on a moment, then swims as the others do.
+      Fish.entering[eid] = 0
+      Fish.kick[eid] = -rand([0.2, 1.2])
+    }
   } else {
-    // Loosely schooling: room from near neighbours, swimming their way, drifting together.
-    let sx = 0, sy = 0, ax = 0, ay = 0, cx = 0, cy = 0, na = 0, nc = 0
-    for (const o of school) {
-      if (o === eid || Fish.entering[o]) continue
-      const dx = Position.x[o] - px
-      const dy = Position.y[o] - py
-      const dz = Position.z[o] - pz
-      const d = Math.hypot(dx, dy, dz * 0.7)
-      if (d < S.separation * s && d > 0) {
-        const w = 1 - d / (S.separation * s)
-        sx -= (dx / d) * w
-        sy -= (dy / d) * w
+    // Burst and glide: a short, hard kick, aimed, then a long coast.
+    let v = Math.hypot(Velocity.x[eid], Velocity.y[eid], Velocity.z[eid])
+    const kick = Fish.kick[eid]
+    if (kick > 0) {
+      Fish.kick[eid] = kick - dt
+      v += (Fish.kickSpeed[eid] - v) * (1 - Math.exp(-14 * dt))
+      const take = 1 - Math.exp(-S.agility.kick * dt)
+      Fish.heading[eid] = before + turn(before, Fish.turnTo[eid]) * take
+      Fish.pitch[eid] += (Fish.pitchTo[eid] - Fish.pitch[eid]) * take
+      if (Fish.kick[eid] <= 0) Fish.kick[eid] = -rand(S.kick.glide)
+    } else {
+      const drift = pace * S.kick.drift
+      v = drift + (v - drift) * Math.exp(-dt / S.kick.coast)
+      if (Fish.flee[eid] > 0) Fish.flee[eid] -= dt
+      else {
+        // Holding its line, only easing clear of the others and back into its water.
+        const f = steer(world, eid, school, s, false)
+        Fish.heading[eid] = before + turn(before, Math.atan2(f.y, f.x)) * (1 - Math.exp(-S.agility.glide * dt))
+        Fish.kick[eid] = kick + dt
       }
-      if (d < S.alignment * s) {
-        ax += Math.cos(Fish.heading[o])
-        ay += Math.sin(Fish.heading[o])
-        na++
-      }
-      if (d < S.cohesion * s) {
-        cx += dx
-        cy += dy
-        nc++
+      Fish.pitch[eid] *= Math.exp(-S.level * dt)
+      if (Fish.kick[eid] >= 0) {
+        // The next kick, aimed where it wants to go, a swerve off that, and up or down.
+        const f = steer(world, eid, school, s, true)
+        Fish.turnTo[eid] = Math.atan2(f.y, f.x) + (random() < 0.5 ? -1 : 1) * random() * S.swerve
+        Fish.pitchTo[eid] = clamp(f.z + (random() - 0.5) * 0.3, -1, 1) * S.climb
+        Fish.kickSpeed[eid] = pace * S.kick.boost * (1 + S.kick.vary * (random() * 2 - 1))
+        Fish.kick[eid] = S.kick.length * (0.8 + random() * 0.4)
       }
     }
-    fx += sx * 3
-    fy += sy * 3
-    if (na) {
-      fx += (ax / na) * 0.35
-      fy += (ay / na) * 0.35
-    }
-    if (nc) {
-      fx += (cx / nc / (S.cohesion * s)) * 0.3
-      fy += (cy / nc / (S.cohesion * s)) * 0.3
-    }
-    // It keeps to the water around its spot, turning back once it's strayed.
-    const hx = Fish.homeX[eid] * k - px
-    const hy = Fish.homeY[eid] * k - py
-    const away = Math.hypot(hx, hy) || 1
-    const range = S.range * world.viewport.width * k
-    const pull = smoothstep(range * 0.6, range * 1.4, away) * 2.5
-    fx += (hx / away) * pull
-    fy += (hy / away) * pull
+    // Not out through the surface, nor down past the deep.
+    if (depth < S.depth.band[0] && Fish.pitch[eid] > 0) Fish.pitch[eid] *= Math.exp(-8 * dt)
+    if (depth > S.depth.band[1] + 120 && Fish.pitch[eid] < 0) Fish.pitch[eid] *= Math.exp(-8 * dt)
+    Fish.heading[eid] = ((Fish.heading[eid] % TAU) + TAU) % TAU
+    setVelocity(eid, v)
 
-    // Bursts of speed, each with a swerve.
-    const burst = Fish.burst[eid]
-    if (burst > 0) {
-      Fish.burst[eid] = burst - dt
-      if (Fish.burst[eid] <= 0) Fish.burst[eid] = -rand(S.burst.every)
-      const swell = Math.sin((Math.PI * burst) / S.burst.length)
-      speed *= 1 + (S.burst.boost - 1) * swell
-      const a = Fish.dart[eid]
-      const rx = fx * Math.cos(a) - fy * Math.sin(a)
-      fy = fx * Math.sin(a) + fy * Math.cos(a)
-      fx = rx
-      agility = S.agility * 2
-    } else if ((Fish.burst[eid] = burst + dt) >= 0) {
-      Fish.burst[eid] = S.burst.length
-      Fish.dart[eid] = (random() < 0.5 ? -1 : 1) * rand(S.burst.swerve)
-    }
-
-    // Now and then, another depth.
+    // Now and then, another depth, often taken up by its neighbours too.
     Fish.redepth[eid] -= dt
-    if (Fish.redepth[eid] <= 0) {
-      Fish.redepth[eid] = rand(S.redepth)
-      Fish.depth[eid] = rand(S.depth)
+    if (Fish.redepth[eid] <= 0 && Fish.flee[eid] <= 0) {
+      const target = newDepth(school, eid)
+      Fish.depth[eid] = target
+      Fish.redepth[eid] = rand(S.depth.every)
+      for (const o of school) {
+        if (o === eid || Fish.entering[o] || Fish.flee[o] > 0 || random() > S.depth.share) continue
+        const near = Math.hypot(Position.x[o] - Position.x[eid], Position.y[o] - Position.y[eid], Position.z[o] - pz)
+        if (near > S.cohesion * s) continue
+        const depth = clamp(target + (random() - 0.5) * 80, S.depth.band[0], S.depth.band[1])
+        // Not down out of sight, though, if that leaves too few to be seen.
+        if (depth >= S.depth.visibleDepth && inSight(school, o) < S.depth.visible * school.length) continue
+        Fish.depth[o] = depth
+        Fish.redepth[o] = rand(S.depth.every)
+      }
     }
   }
 
-  if (!entering) {
-    // It roams past the window's edges, but not far, before turning back.
-    const limX = (world.viewport.width / 2) * k
-    const limY = (world.viewport.height / 2) * k
-    fx -= Math.sign(px) * smoothstep(0.75, 1 + S.roam, Math.abs(px) / limX) * 4
-    fy -= Math.sign(py) * smoothstep(0.75, 1 + S.roam, Math.abs(py) / limY) * 4
-  }
-
-  // Turn toward it, while the heading wanders.
-  const before = Fish.heading[eid]
-  const wander = Math.sin(t * 0.53 + ph * 7) * 0.65 + Math.sin(t * 1.37 + ph * 3) * 0.35
-  let heading = before + (fleeing ? 0 : S.wander * wander * dt)
-  heading += turn(heading, Math.atan2(fy, fx)) * (1 - Math.exp(-agility * (fleeing ? 0.5 : 1) * dt))
-  Fish.heading[eid] = heading = ((heading % TAU) + TAU) % TAU
-
-  // Speed and depth, taken up with a little inertia (quicker to speed up).
-  let v = Math.hypot(Velocity.x[eid], Velocity.y[eid])
-  v += (speed - v) * (1 - Math.exp(-(speed > v ? 5 : 1.6) * dt))
-  Velocity.z[eid] += (rise - Velocity.z[eid]) * (1 - Math.exp(-2.5 * dt))
-
-  // The tail: it beats faster the faster it swims, and sways the body.
-  const beat = Math.min(S.wag.maxBeat, S.wag.perPx * v)
-  Fish.wag[eid] = (Fish.wag[eid] + TAU * beat * dt) % TAU
-  const sway = S.wag.sway * s * TAU * beat * Math.cos(Fish.wag[eid])
-  const c = Math.cos(heading)
-  const sn = Math.sin(heading)
-  Velocity.x[eid] = c * v
-  Velocity.y[eid] = sn * v
-  Position.x[eid] = px + (c * v - sn * sway) * dt
-  Position.y[eid] = py + (sn * v + c * sway) * dt
+  Position.x[eid] += Velocity.x[eid] * dt
+  Position.y[eid] += Velocity.y[eid] * dt
   Position.z[eid] = Math.min(-4, pz + Velocity.z[eid] * dt)
 
-  // Its pose: face turned a little toward where it's going, nose down when
-  // it dives (up when it rises), banked into turns, and the tail's wag.
-  const rate = turn(before, heading) / Math.max(dt, 1e-3)
-  Fish.bank[eid] += (clamp(-rate * S.bank, -0.6, 0.6) - Fish.bank[eid]) * (1 - Math.exp(-5 * dt))
-  const pitch = clamp(Math.atan2(-Velocity.z[eid], Math.max(v, 1)), -0.8, 0.8) * 0.85
-  const wag = Math.sin(Fish.wag[eid]) * S.wag.angle * (fleeing ? 1.6 : 1)
-  const roll = Fish.bank[eid] + wag * 0.8
-  Rotation.x[eid] = -pitch * sn + roll * c
-  Rotation.y[eid] = pitch * c + roll * sn
-  Rotation.z[eid] = -S.lean * c + wag
+  // Its pose: face turned a little toward where it's going, nose down as it
+  // dives (up as it climbs), and banked into its turns.
+  const h = Fish.heading[eid]
+  const c = Math.cos(h)
+  const sn = Math.sin(h)
+  const rate = turn(before, h) / Math.max(dt, 1e-3)
+  Fish.bank[eid] += (clamp(-rate * S.bank, -0.4, 0.4) - Fish.bank[eid]) * (1 - Math.exp(-5 * dt))
+  const tilt = -clamp(Fish.pitch[eid], -0.8, 0.8) * 0.85
+  const roll = Fish.bank[eid]
+  Rotation.x[eid] = -tilt * sn + roll * c
+  Rotation.y[eid] = tilt * c + roll * sn
+  Rotation.z[eid] = -S.lean * c
 
   // Swimming just under the surface, it ripples it.
   if (depth < S.wake.depth) {
@@ -448,9 +492,10 @@ function swim(world: SceneWorld, eid: number, school: number[], dt: number, s: n
 
 /**
  * The stack chips, from site.stackChips. With motion they're fish: they swim
- * in from out of sight when the scene starts, then wander, school loosely,
- * put on bursts of speed and change depth, never still; a press scatters the
- * ones near it. With reduced motion they float still at their spots.
+ * in from out of sight when the scene starts, then swim in bursts and glides,
+ * schooling loosely and ranging from just under the surface down into the
+ * dark; a press scatters the ones near it. With reduced motion they float
+ * still at their spots.
  */
 export function chipsSystem(): System {
   let shown = ''

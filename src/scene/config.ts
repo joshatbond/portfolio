@@ -188,24 +188,48 @@ export const config = {
     surfaceDepth: 14,
     bob: { amplitude: [2, 4], rock: 10 },
     /**
-     * Swimming, like fish. Each cruises at its own speed (px/s), now and then
-     * putting on a burst (every `burst.every` s, `boost`× for `length` s),
-     * turning toward where it wants to go at `agility` per s while its heading
-     * wanders (`wander` rad/s), and making for a depth (px) it changes every
-     * `redepth` s. Near neighbours keep `separation` px apart, match heading
-     * within `alignment` px and drift together within `cohesion` px. Each
-     * keeps to the water around its spot in the still, turning back once it's
-     * strayed about `range` (share of the window's width) from it, and none
-     * roams more than `roam` (share of the window) past its edges.
+     * Swimming, like fish: burst and glide. Each fish has its own pace (px/s).
+     * A kick of about `kick.length` s takes it up to `kick.boost`× its pace
+     * (each kick up to `kick.vary` stronger or weaker); then it glides for
+     * `kick.glide` s, a new length each time, coasting down toward
+     * `kick.drift`× its pace (losing e⁻¹ of the difference every `kick.coast`
+     * s) before it kicks again.
+     *
+     * It turns on its kicks: quickly (`agility.kick` per s) toward where it
+     * wants to go, swerving up to `swerve` rad off that, and climbing or diving
+     * at up to `climb` rad. Gliding, it holds its line (`agility.glide`) and
+     * levels out (`level` per s). Near neighbours keep `separation` px apart,
+     * swim their way within `alignment` px and drift together within
+     * `cohesion` px, all in three dimensions. Each keeps to the water around
+     * its spot in the still, turning back once it's strayed about `range`
+     * (share of the window's width) from it, and none roams more than `roam`
+     * (share of the window) past its edges.
      */
     swim: {
-      cruise: [55, 95] as [number, number],
-      /** In a burst it also swerves `swerve` rad off its line. */
-      burst: { every: [4, 10] as [number, number], boost: 1.9, length: 0.7, swerve: [0.4, 1.1] as [number, number] },
-      agility: 1.4,
-      wander: 0.8,
-      depth: [40, 440] as [number, number],
-      redepth: [6, 12] as [number, number],
+      pace: [60, 90] as [number, number],
+      kick: { length: 0.28, boost: 2.8, vary: 0.25, glide: [1.4, 3.8] as [number, number], coast: 1, drift: 0.25 },
+      agility: { kick: 12, glide: 0.35 },
+      swerve: 0.9,
+      climb: 0.75,
+      level: 0.5,
+      /**
+       * The depths they range through (px below the surface), from just under
+       * it down to deep in the dark, where they fade into the water. New ones
+       * lean shallow (`bias`). A fish picks a new depth every `every` s, and
+       * near neighbours (within `cohesion`) go with it `share` of the time, so
+       * groups sink and rise together; but while fewer than `visible` (share)
+       * of the others are making for depths above `visibleDepth`, where
+       * they're plain to see, the new depth is above it, and none follows a
+       * neighbour down out of sight.
+       */
+      depth: {
+        band: [15, 820] as [number, number],
+        bias: 1.6,
+        visibleDepth: 300,
+        visible: 0.5,
+        every: [5, 11] as [number, number],
+        share: 0.6,
+      },
       separation: 120,
       alignment: 280,
       cohesion: 340,
@@ -213,12 +237,7 @@ export const config = {
       roam: 0.3,
       /** How far the face turns toward where it's going, and banks per rad/s of turn (rad). */
       lean: 0.25,
-      bank: 0.35,
-      /**
-       * The tail: how far it wags (rad), beats per px swum (at most `maxBeat`
-       * a second), and sways the body side to side (px).
-       */
-      wag: { angle: 0.14, perPx: 0.03, maxBeat: 4.5, sway: 2.5 },
+      bank: 0.25,
       /** Fish this near the surface ripple it as they pass. */
       wake: { depth: 60, every: 0.3, radius: 0.012, strength: 0.00035 },
     },
@@ -233,12 +252,14 @@ export const config = {
       behind: 2,
       deep: 2,
       /**
-       * They swim in this many times faster than they cruise, from behind
-       * faster still, closing on the depth they make for at `climb` (per s:
-       * from the sides, from behind and from the deep), at most `max` px/s.
+       * They swim in this many times faster than their pace, from behind
+       * faster still, turning toward their spot at `agility` per s and
+       * closing on the depth they make for at `climb` (per s: from the sides,
+       * from behind and from the deep), at most `max` px/s.
        */
       boost: 2,
       behindBoost: 2.6,
+      agility: 1.4,
       climb: { side: 0.5, behind: 0.7, deep: 0.9, max: 700 },
       /** Where they start (px below the surface): from behind just under it, from the deep out of sight. */
       behindFrom: 18,
@@ -256,8 +277,9 @@ export const config = {
     },
     /**
      * A press startles fish within `radius` px of it (seen at the surface):
-     * they dart away at `speed` px/s and dive `dive` px, for about `time` s,
-     * the shallow ones loosing a few bubbles.
+     * each kicks away at up to `speed` px/s, diving about `dive` px, and
+     * glides on without turning back for about `time` s; the shallow ones
+     * loose a few bubbles.
      */
     scatter: { radius: 360, speed: [480, 680] as [number, number], dive: 180, time: 1.1 },
     bubbles: {
