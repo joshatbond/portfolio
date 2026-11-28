@@ -1,6 +1,6 @@
 import { addComponent, addEntity, query, removeEntity } from 'bitecs'
 import { site } from '../../config/site'
-import { Bob, Chip, Home, Mode, Position, Rotation, State, Velocity } from '../chips/components'
+import { Bob, Bubble, Chip, Home, Mode, Position, Rotation, State, Velocity } from '../chips/components'
 import { chipKeys } from '../chips/geometry'
 import { config } from '../config'
 import type { SceneWorld, System } from '../world'
@@ -15,6 +15,7 @@ const depthScale = (world: SceneWorld, depth: number) => (world.view.distance + 
 
 function spawn(world: SceneWorld) {
   for (const eid of query(world, [Chip])) removeEntity(world, eid)
+  for (const eid of query(world, [Bubble])) removeEntity(world, eid)
   const { width: W, height: H, mobile } = world.viewport
   const layout = mobile ? C.mobile : C.desktop
   const at = layout.at as Record<string, readonly [number, number]>
@@ -80,6 +81,35 @@ function startDive(world: SceneWorld, eid: number, from: { x: number; y: number 
   Rotation.sy[eid] = (Math.random() - 0.5) * 9
   Rotation.sz[eid] = (Math.random() - 0.5) * 6
   drop(world, eid, 0.03, C.dive.splash)
+  // A burst of bubbles where it went under.
+  for (let i = 0; i < C.bubbles.perDive; i++) {
+    const b = addEntity(world)
+    addComponent(world, b, Position)
+    addComponent(world, b, Velocity)
+    addComponent(world, b, Bubble)
+    Position.x[b] = Position.x[eid] + (Math.random() - 0.5) * 40
+    Position.y[b] = Position.y[eid] + (Math.random() - 0.5) * 40
+    Position.z[b] = Position.z[eid] - Math.random() * 30
+    Velocity.x[b] = (Math.random() - 0.5) * 120 + Velocity.x[eid] * 0.2
+    Velocity.y[b] = (Math.random() - 0.5) * 120 + Velocity.y[eid] * 0.2
+    Velocity.z[b] = rand(C.bubbles.rise)
+    Bubble.age[b] = 0
+    Bubble.life[b] = rand(C.bubbles.life)
+  }
+}
+
+/** Bubbles rise, drift, and pop at the surface or when they've had their time. */
+function bubbles(world: SceneWorld, dt: number) {
+  const drag = Math.pow(0.2, dt)
+  for (const b of query(world, [Bubble, Position, Velocity])) {
+    Bubble.age[b] += dt
+    Velocity.x[b] *= drag
+    Velocity.y[b] *= drag
+    Position.x[b] += Velocity.x[b] * dt + Math.sin((Bubble.age[b] + b) * 9) * 0.3
+    Position.y[b] += Velocity.y[b] * dt
+    Position.z[b] += Velocity.z[b] * dt
+    if (Bubble.age[b] >= Bubble.life[b] || Position.z[b] > -2) removeEntity(world, b)
+  }
 }
 
 /** Dive: tumble down to a depth band, scattering away from the disturbance. */
@@ -233,6 +263,7 @@ export function chipsSystem(): System {
     },
     update(world) {
       const dt = world.time.delta
+      bubbles(world, dt)
       const eids = [...query(world, [Chip, State])]
       const contact = world.input.contact
       const idle = (performance.now() - world.input.lastAt) / 1000 > C.idle

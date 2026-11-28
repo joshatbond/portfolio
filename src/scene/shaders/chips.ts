@@ -39,3 +39,28 @@ void main() {
   gl_FragColor = vec4(col, 1.0);
 }
 `
+
+// Bubbles: soft, pale points, smaller and dimmer with depth, fading as they age.
+export const bubbleVert = /* glsl */ `
+attribute float aFade;
+uniform float uScale;
+varying float vFade;
+void main() {
+  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  vFade = aFade;
+  gl_PointSize = uScale * 900.0 / -mv.z;
+  gl_Position = projectionMatrix * mv;
+}
+`
+
+export const bubbleFrag = /* glsl */ `
+varying float vFade;
+void main() {
+  vec2 p = gl_PointCoord * 2.0 - 1.0;
+  float r = length(p);
+  float ring = smoothstep(1.0, 0.75, r) * (0.35 + 0.65 * smoothstep(0.35, 0.9, r));
+  float a = ring * vFade;
+  // Premultiplied, like the chips' target.
+  gl_FragColor = vec4(vec3(0.75, 0.97, 1.0) * a, a);
+}
+`

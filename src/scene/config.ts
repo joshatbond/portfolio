@@ -105,7 +105,8 @@ export const config = {
     ripple: { every: [1.6, 2.6], radius: 0.022, strength: 0.0005 },
     /** Pointer contact within this distance (px) makes a chip dive. */
     disturbRadius: 350,
-    dive: { duration: [0.4, 0.7], bands: [160, 420], scatter: [220, 420], splash: 0.004 },
+    dive: { duration: [0.4, 0.7], bands: [160, 420], scatter: [220, 420], splash: 0.0028 },
+    bubbles: { perDive: 10, life: [0.6, 1.2], rise: [120, 240], size: [3, 7] },
     school: {
       speed: [130, 95],
       separation: 90,
