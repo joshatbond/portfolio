@@ -33,6 +33,9 @@ const [first, ...rest] = site.name.split(' ')
      layer, seen through the haze): pool/paint at about half strength, just
      bright enough to hold the 4.57:1 floor where the rim light reaches it. */
   .abyss {
+    /* Text in the water: pressing around shouldn't select it. */
+    user-select: none;
+    -webkit-user-select: none;
     display: flex;
     flex-direction: column;
     align-items: center;

@@ -28,6 +28,9 @@ import bunChip from '../assets/pool/bun-chip.png'
 
 <style>
   .abyss {
+    /* Text in the water: pressing around shouldn't select it. */
+    user-select: none;
+    -webkit-user-select: none;
     display: flex;
     flex-direction: column;
     align-items: center;

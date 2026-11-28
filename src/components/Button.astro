@@ -154,6 +154,11 @@ const iconSize = size === 'pill' ? 22 : 16
     transform: translateY(-3px);
   }
 
+  /* On the pills the focus ring hugs the edge. */
+  .btn--pill:focus-visible {
+    outline-offset: 0;
+  }
+
   .btn--pill:active {
     transform: translateY(1px) scale(0.98);
   }
