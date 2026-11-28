@@ -16,7 +16,7 @@ export interface Point {
  * `size` px square centred on its home) that overlaps one of `avoid` moves to
  * the nearest spot inside `frame` that's `gap` px clear of `avoid`, `clear`
  * and every other chip; chips that would share a spot push each other apart
- * until they fit. Chips that overlap none of `avoid` keep their home exactly,
+ * until they fit (to within a pixel of the gap). Chips that overlap none of `avoid` keep their home exactly,
  * even where they sit on one of `clear`. Everything is in the same px.
  */
 export function layoutHomes(
