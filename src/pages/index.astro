@@ -94,31 +94,21 @@ const [first, ...rest] = site.name.split(' ')
     inset: 0;
     grid-area: 1 / 1;
     opacity: 0;
-    transition: opacity 600ms ease;
   }
 
+  /* The swap, in one step, with one copy of the name and title on screen at
+     any time: the scene shows over the still (a render of the same water)
+     and draws them in the water, on the DOM text's own pixels, and the DOM
+     copy stays for screen readers but stops painting. A fade would show
+     both copies, or faint ones. */
   html[data-scene='ready'] .pool-scene {
     opacity: 1;
   }
 
-  /* Once the scene draws the name and title in the water, the DOM copy stays
-     for screen readers but stops painting: once the scene has fully faded
-     in, so the text never shows through a half-faded canvas. */
   html[data-scene='ready'] .abyss .name,
   html[data-scene='ready'] .abyss .role {
     color: transparent;
     text-shadow: none;
-    transition:
-      color 0s 600ms,
-      text-shadow 0s 600ms;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .pool-scene,
-    html[data-scene='ready'] .abyss .name,
-    html[data-scene='ready'] .abyss .role {
-      transition: none;
-    }
   }
 </style>
 
