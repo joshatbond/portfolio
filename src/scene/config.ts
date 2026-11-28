@@ -113,9 +113,9 @@ export const config = {
      * `speed` px/s, each pattern giving way to the next over `turnover` s;
      * `lift` is the share that churns up and down.
      */
-    current: { wavelength: [280, 720] as [number, number], speed: 14, turnover: 26, lift: 0.35 },
+    current: { wavelength: [280, 720] as [number, number], speed: 7, turnover: 26, lift: 0.3 },
     /** Moving slowly forward: everything drifts toward the window (px/s). */
-    approach: 16,
+    approach: 70,
     /** How quickly a speck takes up the water's motion (per s): its inertia. */
     drag: 1.2,
     /**
@@ -155,10 +155,10 @@ export const config = {
 
   chips: {
     /**
-     * Still positions from the Figma Still frames: the chip's top-left in a
-     * 1440×900 (desktop) or 390×844 (mobile) frame. Positions scale with the
-     * window. Which chips appear comes from site.stackChips; phones show the
-     * ones in the mobile frame.
+     * Where they float with reduced motion (the Figma Still frames): the
+     * chip's top-left in a 1440×900 (desktop) or 390×844 (mobile) frame,
+     * scaled with the window. Which chips appear comes from site.stackChips;
+     * phones show the ones in the mobile frame.
      */
     desktop: {
       frame: [1440, 900],
@@ -177,34 +177,57 @@ export const config = {
     },
     /** Chip edge length (px); the artwork is 64. */
     size: 64,
-    /** Still: floating just under the surface. */
+    /**
+     * Reduced motion: they float still just under the surface, at the
+     * positions above, rocked (degrees) and lifted a little each.
+     */
     surfaceDepth: 14,
-    bob: { amplitude: [2, 4], period: [4, 6], rock: 10 },
-    /** Still chips each send out a soft ripple this often (s). */
-    ripple: { every: [1.6, 2.6], radius: 0.022, strength: 0.0005 },
-    /** Pointer contact within this distance (px) makes a chip dive. */
-    disturbRadius: 350,
-    dive: { duration: [0.4, 0.7], bands: [160, 420], scatter: [220, 420], splash: 0.0028 },
+    bob: { amplitude: [2, 4], rock: 10 },
+    /**
+     * Swimming, like fish. Each cruises at its own speed (px/s), now and then
+     * putting on a burst (every `burst.every` s, `boost`× for `length` s),
+     * turning toward where it wants to go at `agility` per s while its heading
+     * wanders (`wander` rad/s), and making for a depth (px) it changes every
+     * `redepth` s. Near neighbours keep `separation` px apart, match heading
+     * within `alignment` px and drift together within `cohesion` px. They roam
+     * `roam` (share of the window) past its edges before turning back.
+     */
+    swim: {
+      cruise: [55, 95] as [number, number],
+      burst: { every: [4, 10] as [number, number], boost: 1.9, length: 0.7 },
+      agility: 1.4,
+      wander: 0.8,
+      depth: [70, 520] as [number, number],
+      redepth: [6, 12] as [number, number],
+      separation: 120,
+      alignment: 280,
+      cohesion: 340,
+      roam: 0.3,
+      /** The tail: how far it wags (rad) and beats per px swum. */
+      wag: { angle: 0.1, perPx: 0.02 },
+      /** Fish this near the surface ripple it as they pass. */
+      wake: { depth: 60, every: 0.3, radius: 0.012, strength: 0.00035 },
+    },
+    /**
+     * Swimming in when the scene starts, over `stagger` s: `behind` of them
+     * from behind the camera (past the window's top and bottom, just under
+     * the surface, swimming away into the water), `deep` rising out of the
+     * dark in front of it, and the rest from the left and right, deeper.
+     */
+    arrive: { stagger: 3.5, behind: 2, deep: 2 },
+    /**
+     * A press startles fish within `radius` px of it (seen at the surface):
+     * they dart away at `speed` px/s and dive `dive` px, for about `time` s,
+     * the shallow ones loosing a few bubbles.
+     */
+    scatter: { radius: 360, speed: [340, 480] as [number, number], dive: 180, time: 1.1 },
     bubbles: {
-      perDive: 10,
-      life: [0.6, 1.2],
-      rise: [120, 240],
+      perDart: 6,
+      life: [0.6, 1.2] as [number, number],
+      rise: [120, 240] as [number, number],
       /** Diameter just under the surface (CSS px); deeper bubbles look smaller. */
       size: 5,
     },
-    school: {
-      speed: [130, 95],
-      separation: 90,
-      alignment: 220,
-      cohesion: 260,
-      /** How far past the frame the school may roam, as a fraction of it. */
-      roam: 0.35,
-      /** Extra clearance around the name column and the pills (px). */
-      keepOut: 36,
-    },
-    /** With no input for this long (s), chips rise and bob again. */
-    idle: 6,
-    rise: { duration: [1.8, 2.6] },
     /** Murky water: chips dim by e⁻¹ every this many px of depth. */
     fogDepth: 360,
   },

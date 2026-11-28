@@ -29,8 +29,6 @@ export interface SceneContext {
     /** A press into the water this frame (world px at the surface). */
     press: { x: number; y: number } | null
   }
-  /** Screen areas chips steer around (world px at the surface, y up): the name column and the pills. */
-  keepOut: { x0: number; y0: number; x1: number; y1: number }[]
   /** Drops queued for the water this frame. */
   drops: Drop[]
   gpu: { renderer: WebGLRenderer; quad: FullscreenQuad }
@@ -90,7 +88,6 @@ export function createSceneWorld(
     viewport: { width: 1, height: 1, dpr: 1, mobile: false },
     view: { distance: 1240, nameDepth: 1100 },
     input: { moves: [], presses: [], last: null, lastAt: 0, contact: null, stroke: null, press: null },
-    keepOut: [],
     drops: [],
     gpu,
     water: { height: null, curvature: null, simScale: 1 },
