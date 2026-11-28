@@ -1,7 +1,7 @@
 ---
 /**
  * The pool as a static still, in CSS. The viewport is a window looking out
- * into the inky deep: lamps in its frame throw soft pools of light into the
+ * into the inky deep: a lamp behind the camera throws a soft glow into the
  * water, and specks drift through it.
  *
  * It's the first paint, and what the WebGL scene fades in over. On top of the
@@ -62,26 +62,11 @@ const motes = Array.from({ length: 36 }, () => {
     pointer-events: none;
   }
 
-  /* The lamps' light in the inky water: soft pools where the scene's lamps
-     sit (src/scene/config.ts), two on the top and bottom edges, or on the
-     long sides on phones. */
+  /* The lamp's light in the inky water: one soft glow, a quarter of the way
+     up from the bottom, where the scene's lamp sits behind the camera
+     (src/scene/config.ts). */
   .light {
-    --pool: rgb(6 182 212 / 0.3);
-    background:
-      radial-gradient(30vmin 24vmin at 33.3% 0, var(--pool), transparent),
-      radial-gradient(30vmin 24vmin at 66.7% 0, var(--pool), transparent),
-      radial-gradient(30vmin 24vmin at 33.3% 100%, var(--pool), transparent),
-      radial-gradient(30vmin 24vmin at 66.7% 100%, var(--pool), transparent);
-  }
-
-  @media (max-width: 719.98px) {
-    .light {
-      background:
-        radial-gradient(26vmin 32vmin at 0 33.3%, var(--pool), transparent),
-        radial-gradient(26vmin 32vmin at 0 66.7%, var(--pool), transparent),
-        radial-gradient(26vmin 32vmin at 100% 33.3%, var(--pool), transparent),
-        radial-gradient(26vmin 32vmin at 100% 66.7%, var(--pool), transparent);
-    }
+    background: radial-gradient(60vmax 48vmax at 50% 75%, rgb(6 182 212 / 0.22), rgb(6 182 212 / 0.06) 50%, transparent);
   }
 
   .render img {

@@ -1,4 +1,4 @@
-import { Vector2, Vector3, Vector4 } from 'three'
+import { Vector2, Vector4 } from 'three'
 import { textRect } from './abyss'
 import { config } from './config'
 import { MAX_LAMPS } from './shaders/lamps'
@@ -22,25 +22,26 @@ export function updateLampUniforms(world: SceneWorld) {
   // still read.
   const reach = Math.pow(scale, 0.75)
   const pk = mobile ? config.abyss.pocket.mobile : config.abyss.pocket.desktop
-  const lamps = (mobile ? L.mobile : L.desktop).slice(0, MAX_LAMPS)
+  const lamps = L.slice(0, MAX_LAMPS)
   const pos = Array.from({ length: MAX_LAMPS }, () => new Vector4())
-  const dirs = Array.from({ length: MAX_LAMPS }, () => new Vector3(0, 0, -1))
-  lamps.forEach(({ at: [ax, ay], power }, i) => {
-    const x = (ax - 0.5) * W
-    const y = (0.5 - ay) * H
-    pos[i].set(x, y, power, 0)
-    // Leaning out toward its own edge of the frame.
-    const out = new Vector2(Math.abs(ax - 0.5) >= Math.abs(ay - 0.5) ? Math.sign(x) : 0, Math.abs(ay - 0.5) > Math.abs(ax - 0.5) ? Math.sign(y) : 0)
-    dirs[i].set(out.x * L.tilt, out.y * L.tilt, -1).normalize()
+  const shape = Array.from({ length: MAX_LAMPS }, () => new Vector4(-2, -2, 0, 1))
+  lamps.forEach(({ at: [ax, ay], behind, water, specks, beam, pool }, i) => {
+    const height = world.view.distance + behind
+    // The cosine off the lamp's axis toward a point this far out at the surface.
+    const cos = (r: number) => Math.cos(Math.atan((r * reach) / height))
+    pos[i].set((ax - 0.5) * W, (0.5 - ay) * H, water, specks)
+    shape[i].set(
+      pool ? cos(pool[1]) : -2,
+      pool ? cos(pool[0]) : -2,
+      // cosⁿ halves at the beam's radius.
+      beam ? Math.log(0.5) / Math.log(cos(beam)) : 0,
+      height,
+    )
   })
-  const rad = (d: number) => (d * Math.PI) / 180
   Object.assign(u, {
     uLamps: { value: pos },
-    uLampDirs: { value: dirs },
+    uLampShape: { value: shape },
     uLampCount: { value: lamps.length },
-    uLampHeight: { value: L.height * reach },
-    uLampCone: { value: new Vector2(Math.cos(rad(L.cone[1])), Math.cos(rad(L.cone[0]))) },
-    uLampRange: { value: L.range * reach },
     uExtinction: { value: c.extinction / reach },
     uHalf: { value: new Vector2(W / 2, H / 2) },
     uCamZ: { value: world.view.distance },

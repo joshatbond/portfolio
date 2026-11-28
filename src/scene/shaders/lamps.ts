@@ -1,4 +1,4 @@
-// The lamps in the window frame and the murky water they light, shared by
+// The lamps behind the camera and the murky water they light, shared by
 // everything that's lit by them: the light in the water (shaders/light.ts)
 // and the specks drifting through it (shaders/specks.ts). World px: x right,
 // y up, z up from the surface (the deep is z < 0); the camera hangs above
@@ -8,12 +8,9 @@ export const MAX_LAMPS = 8
 
 export const lampsChunk = /* glsl */ `
 #define MAX_LAMPS ${MAX_LAMPS}
-uniform vec4 uLamps[MAX_LAMPS];     // x, y (on the frame), power, -
-uniform vec3 uLampDirs[MAX_LAMPS];  // where each beam points
+uniform vec4 uLamps[MAX_LAMPS];     // x, y (over the water), strength in the water, on the specks
+uniform vec4 uLampShape[MAX_LAMPS]; // cone: cos of its outer, inner half-angles (< -1: none); beam: cosⁿ's n (0: none); height
 uniform int uLampCount;
-uniform float uLampHeight;
-uniform vec2 uLampCone;             // cos of the outer, inner half-angles
-uniform float uLampRange;
 uniform float uExtinction;
 uniform vec2 uHalf;                 // half the window
 uniform float uCamZ;
@@ -39,28 +36,33 @@ float noise(vec2 p) {
     u.y);
 }
 
-// Clouds of murk at p, 0..1, slowly drifting; depth shifts the pattern so
-// the clouds have body.
+// Clouds of murk at p, 0..1, slowly drifting; depth shifts the pattern a
+// little, so the clouds have body but keep their shape seen from above.
 float murk(vec3 p) {
-  vec2 q = (p.xy + p.z * vec2(0.61, -0.43)) * uMurk.x;
+  vec2 q = (p.xy + p.z * vec2(0.16, -0.11)) * uMurk.x;
   vec2 d = vec2(uTime * uMurk.w * uMurk.x);
   return 0.55 * noise(q + d * vec2(1.0, 0.6))
        + 0.30 * noise(q * 2.03 + d * vec2(-0.8, 1.1) + 7.3)
        + 0.15 * noise(q * 4.11 + d * vec2(1.3, -0.9) + 13.7);
 }
 
-// Lamp i's light reaching p (before the murk), and where it crossed the
-// surface on the way.
+// Lamp i's light reaching p (before the murk and the lamp's strength), and
+// where it crossed the surface on the way. Each lamp points straight down,
+// the way the camera looks. Its light is as it reaches the surface on its
+// axis; off the axis its beam fades, and below the surface it spreads (as
+// the square of the distance from the lamp) and the water swallows it.
 float lampAt(int i, vec3 p, out vec2 entry) {
-  vec3 o = vec3(uLamps[i].xy, uLampHeight);
+  vec4 shape = uLampShape[i];
+  vec3 o = vec3(uLamps[i].xy, shape.w);
   vec3 v = p - o;
   float d = length(v);
-  float cone = smoothstep(uLampCone.x, uLampCone.y, dot(v / d, uLampDirs[i]));
-  float k = uLampHeight / (uLampHeight - p.z);
+  float c = -v.z / d;
+  float beam = shape.x < -1.0 ? 1.0 : smoothstep(shape.x, shape.y, c);
+  if (shape.z > 0.0) beam *= pow(c, shape.z);
+  float k = shape.w / (shape.w - p.z);
   entry = o.xy + v.xy * k;
   float water = d * (1.0 - k);
-  float spread = 1.0 + (d / uLampRange) * (d / uLampRange);
-  return uLamps[i].z * cone * exp(-uExtinction * water) / spread;
+  return beam * k * k * exp(-uExtinction * water);
 }
 
 // How much of the lamps' light is let through around the name and title:

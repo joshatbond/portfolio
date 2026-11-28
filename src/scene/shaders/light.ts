@@ -43,8 +43,9 @@ void main() {
     float l = 0.0;
     for (int j = 0; j < MAX_LAMPS; j++) {
       if (j >= uLampCount) break;
+      if (uLamps[j].z <= 0.0) continue;
       vec2 entry;
-      float a = lampAt(j, p, entry);
+      float a = lampAt(j, p, entry) * uLamps[j].z;
       if (a > 1e-4) l += a * lens(entry);
     }
     float m = murk(p);

@@ -28,13 +28,13 @@ void main() {
   vec3 n = normalize(vNormalW);
   vec3 col = vColor * (0.62 + 0.38 * max(n.z, 0.0));
 
-  // The lamps: cyan on the faces turned toward one, when it's close.
+  // The lamps: cyan on the faces turned toward one, where its beam falls.
   for (int j = 0; j < MAX_LAMPS; j++) {
     if (j >= uLampCount) break;
     vec2 entry;
-    float l = lampAt(j, vWorld, entry);
-    vec3 toLamp = normalize(vec3(uLamps[j].xy, uLampHeight) - vWorld);
-    col += vec3(0.133, 0.827, 0.933) * min(l, 1.0) * max(dot(n, toLamp), 0.0) * 0.6;
+    float l = lampAt(j, vWorld, entry) * uLamps[j].z;
+    vec3 toLamp = normalize(vec3(uLamps[j].xy, uLampShape[j].w) - vWorld);
+    col += vec3(0.133, 0.827, 0.933) * min(l, 1.0) * max(dot(n, toLamp), 0.0) * 0.22;
   }
 
   // Murky water: dimmer the deeper they sink.

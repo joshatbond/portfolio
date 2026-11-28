@@ -2,7 +2,7 @@
  * Every tunable for the homepage water scene, in one place.
  *
  * The scene: the viewport is a window looking out into the inky deep, like
- * a submersible's. Lamps set in its frame throw their light out into the
+ * a submersible's. Lamps behind the camera throw their light out into the
  * water, which carries on past every edge; the moving water at the window
  * bends it, and marine snow drifts through it.
  */
@@ -45,33 +45,21 @@ export const config = {
   },
 
   /**
-   * The lamps set in the window frame, like a submersible's floodlights:
-   * each throws a soft cone down into the deep, and the dark swallows it.
+   * The lamps, set back behind the camera and pointing the way it looks.
+   * Each has a place over the water (0..1 across and down the window), how
+   * far behind the camera it's set (px), and how strongly it lights the water
+   * and the specks. `beam` is the radius at the surface (px) where its light
+   * has fallen to half off its axis; `pool` cuts it to a cone instead (radii
+   * at the surface: full strength within the first, gone past the second).
    */
-  lamps: {
-    /** Where each sits (0..1 across and down the window, on its edge) and how strong it is. */
-    desktop: [
-      { at: [1 / 3, 0], power: 1 },
-      { at: [2 / 3, 0], power: 1 },
-      { at: [1 / 3, 1], power: 1 },
-      { at: [2 / 3, 1], power: 1 },
-    ],
-    /** Phones: on the long sides instead. */
-    mobile: [
-      { at: [0, 1 / 3], power: 1 },
-      { at: [0, 2 / 3], power: 1 },
-      { at: [1, 1 / 3], power: 1 },
-      { at: [1, 2 / 3], power: 1 },
-    ],
-    /** How far above the water they sit (px). */
-    height: 30,
-    /** Beam half-angles (degrees): full strength within the first, gone past the second. */
-    cone: [14, 44] as [number, number],
-    /** How far each beam leans out, toward its edge of the frame (0 = straight down). */
-    tilt: 0.05,
-    /** Distance (px) at which a lamp's light has spread to half its strength. */
-    range: 340,
-  },
+  lamps: [
+    // The main light: one lamp just behind the camera, a quarter of the way
+    // up from the bottom.
+    { at: [0.5, 0.75], behind: 120, water: 1.4, specks: 0.12, beam: 360 },
+    // A dim cone around it: it barely shows in the water, but the specks
+    // glint in it.
+    { at: [0.5, 0.75], behind: 120, water: 0.05, specks: 1, pool: [420, 900] },
+  ] as Lamp[],
 
   light: {
     /** Fraction of the device pixel size the light volume renders at (it's soft). */
@@ -98,7 +86,7 @@ export const config = {
     lensMax: 1.5,
     /** Light lost per px travelled through the water. */
     extinction: 1 / 230,
-    intensity: 0.0022,
+    intensity: 0.0012,
     /**
      * The murk: clouds in the water (about `scale` px across, drifting at
      * `drift` px/s) that thicken and thin the light by up to ±`amount`.
@@ -123,8 +111,8 @@ export const config = {
     drift: [3, 10] as [number, number],
     sink: 7,
     /** Brightness in the dark, and in a lamp's full light. */
-    dark: 0.08,
-    lit: 8,
+    dark: 0.06,
+    lit: 5,
   },
 
   surface: {
@@ -207,3 +195,12 @@ export const config = {
 } as const
 
 export type SceneConfig = typeof config
+
+export interface Lamp {
+  at: readonly [number, number]
+  behind: number
+  water: number
+  specks: number
+  beam?: number
+  pool?: readonly [number, number]
+}

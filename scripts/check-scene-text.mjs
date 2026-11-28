@@ -9,8 +9,8 @@
 // the two differ are the letters. DOM text is measured by its declared
 // colour, which is what its fully covered pixels show; the scene's text has
 // no declared colour, so it's read from its fully covered pixels instead
-// (within 85% of the brightest: the lower quartile of those, as the light
-// behind varies). It must reach the floor against the brightest twentieth
+// (within 85% of the 99th-percentile brightening: the lower quartile of
+// those, as the light behind varies). It must reach the floor against the brightest twentieth
 // of the glow-only pixels, as check-contrast.mjs reads DOM text against its
 // 95th-percentile pixel.
 //
@@ -84,7 +84,10 @@ for (const { width, height } of SIZES) {
         added.push({ i, d: luminance(shown.data, i) - luminance(bare.data, i) })
       }
     }
-    const most = Math.max(...added.map((p) => p.d))
+    // How much a fully covered letter pixel brightens the water: the 99th
+    // percentile, not the brightest, which can be a speck over a letter
+    // (on a brighter base the same added light counts for more).
+    const most = pick(added.map((p) => p.d).sort((a, b) => a - b), 0.99)
     const glyph = added.filter((p) => p.d >= most * 0.85).map((p) => luminance(shown.data, p.i)).sort((a, b) => a - b)
     const ground = added.map((p) => luminance(bare.data, p.i)).sort((a, b) => a - b)
     checked++

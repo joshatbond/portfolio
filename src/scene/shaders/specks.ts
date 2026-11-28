@@ -30,13 +30,14 @@ void main() {
   for (int j = 0; j < MAX_LAMPS; j++) {
     if (j >= uLampCount) break;
     vec2 entry;
-    l += lampAt(j, p, entry);
+    l += lampAt(j, p, entry) * uLamps[j].w;
   }
   float m = murk(p);
   float fade = smoothstep(uDepth.x, uDepth.x + 60.0, depth) * (1.0 - smoothstep(uDepth.y - 200.0, uDepth.y, depth));
-  // Flakes turning as they drift: now and then one catches the light.
-  float turn = pow(0.5 + 0.5 * sin(t * (0.5 + aSeed.w) + aSeed.z * 7.0), 6.0);
-  vBright = (uBright.x + uBright.y * l * (0.45 + 1.1 * turn)) * pocket(s, m) * fade;
+  // Flakes turning as they drift: now and then one catches the light and
+  // glints.
+  float turn = pow(0.5 + 0.5 * sin(t * (0.5 + aSeed.w) + aSeed.z * 7.0), 14.0);
+  vBright = (uBright.x + uBright.y * l * (0.2 + 2.2 * turn)) * pocket(s, m) * fade;
 
   vec4 mv = modelViewMatrix * vec4(p, 1.0);
   gl_PointSize = max(1.0, uSize * aSeed.w * uCamZ / -mv.z);

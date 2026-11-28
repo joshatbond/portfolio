@@ -57,7 +57,7 @@ void main() {
   for (int j = 0; j < MAX_LAMPS; j++) {
     if (j >= uLampCount) break;
     vec2 toLamp = normalize(uLamps[j].xy - s + 1e-3);
-    facing = max(facing, pow(max(0.0, dot(nd, toLamp)), 4.0));
+    facing = max(facing, pow(max(0.0, dot(nd, toLamp)), 4.0) * min(1.0, uLamps[j].z));
   }
   col += vec3(0.40, 0.91, 0.98) * facing * lit * smoothstep(uGlint.x, uGlint.y, slope) * uGlint.w;
 
