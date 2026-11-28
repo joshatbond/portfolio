@@ -11,8 +11,12 @@ export function textRect(el: Element) {
  * Draws the DOM name and title into a texture, lined up with their layout,
  * so the scene can hang them in the deep and the water can refract them.
  * Returns the texture and its rect in CSS px, relative to `container`.
- * `scale` is the device pixel ratio the scene renders at, so the texture
- * maps 1:1 onto the canvas's pixels.
+ * `scale` is the screen's pixel ratio: the texture is drawn on the screen's
+ * own pixel grid, where the DOM rasterizes its text, so the glyphs land on
+ * the DOM's pixels and the two copies coincide as one hands off to the
+ * other. (Off that grid, or at the scene's capped ratio, they sat up to a
+ * device pixel apart, which read as extruded letters. On some layouts
+ * Chromium still snaps a DOM line a device pixel the other way.)
  */
 export function drawAbyss(
   container: HTMLElement,
@@ -24,10 +28,12 @@ export function drawAbyss(
   const pad = 48
   const box = abyss.getBoundingClientRect()
   const origin = container.getBoundingClientRect()
-  const rect = new DOMRect(box.x - pad, box.y - pad, box.width + pad * 2, box.height + pad * 2)
+  const x0 = Math.floor((box.left - pad) * scale)
+  const y0 = Math.floor((box.top - pad) * scale)
   const canvas = document.createElement('canvas')
-  canvas.width = Math.ceil(rect.width * scale)
-  canvas.height = Math.ceil(rect.height * scale)
+  canvas.width = Math.ceil((box.right + pad) * scale) - x0
+  canvas.height = Math.ceil((box.bottom + pad) * scale) - y0
+  const rect = new DOMRect(x0 / scale, y0 / scale, canvas.width / scale, canvas.height / scale)
   const ctx = canvas.getContext('2d')!
   ctx.scale(scale, scale)
   for (const el of abyss.querySelectorAll<HTMLElement>('.name > span, .role > span')) {
