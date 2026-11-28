@@ -11,11 +11,19 @@ import { timeSystem } from './systems/time'
 import { wavesSystem } from './systems/waves'
 import { createSceneWorld, type System } from './world'
 
+export interface SceneOptions {
+  /**
+   * false (prefers-reduced-motion): no sim, bobbing or flocking. The Still
+   * frame renders once (and again on resize) and the loop never runs.
+   */
+  motion?: boolean
+}
+
 /**
  * Mounts the homepage water into `container` and returns a function that
  * tears it down. Systems run in this order every frame.
  */
-export function mountScene(container: HTMLElement): () => void {
+export function mountScene(container: HTMLElement, { motion = true }: SceneOptions = {}): () => void {
   const renderer = new WebGLRenderer({ antialias: false, alpha: false, stencil: false, powerPreference: 'high-performance' })
   const dpr = Math.min(devicePixelRatio, config.view.maxPixelRatio)
   renderer.setPixelRatio(dpr)
@@ -27,9 +35,9 @@ export function mountScene(container: HTMLElement): () => void {
   const world = createSceneWorld({ renderer, quad })
   const systems: System[] = [
     timeSystem(),
-    inputSystem(),
+    ...(motion ? [inputSystem()] : []),
     chipsSystem(),
-    stirSystem(),
+    ...(motion ? [stirSystem()] : []),
     wavesSystem(),
     lightSystem(),
     chipRenderSystem(),
@@ -46,18 +54,36 @@ export function mountScene(container: HTMLElement): () => void {
     renderer.setSize(width, height, false)
     for (const s of systems) s.resize?.(world)
   }
-  const observer = new ResizeObserver(resize)
-  observer.observe(container)
-  resize()
-
   let ready = false
-  const loop = () => {
+  const frame = () => {
     for (const s of systems) s.update(world)
     if (!ready) {
       ready = true
       document.documentElement.dataset.scene = 'ready'
     }
   }
+  // Without motion: enough frames for the light to settle, then hold still.
+  const still = () => {
+    for (let i = 0; i < 40; i++) frame()
+  }
+  const observer = new ResizeObserver(() => {
+    resize()
+    if (!motion) still()
+  })
+  observer.observe(container)
+  resize()
+  if (!motion) {
+    still()
+    return () => {
+      observer.disconnect()
+      for (const s of systems) s.dispose?.(world)
+      quad.dispose()
+      renderer.dispose()
+      canvas.remove()
+    }
+  }
+
+  const loop = frame
   // Paused while the tab is hidden.
   const onVisibility = () => {
     world.time.then = performance.now()

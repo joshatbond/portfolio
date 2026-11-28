@@ -2,8 +2,8 @@
 /**
  * Homepage (Figma 2017:1046 desktop, 2023:1656 mobile). This is the DOM layer:
  * it paints first over the still pool, stays readable without JS, and keeps
- * the keyboard order h1 → Resume → Projects → HUD. The WebGL scene (step 4)
- * fades in behind it.
+ * the keyboard order h1 → Resume → Projects → HUD. The WebGL scene fades in
+ * behind it where it can run (src/scene).
  */
 import PoolLayout from '../layouts/PoolLayout.astro'
 import Button from '../components/Button.astro'
@@ -13,6 +13,7 @@ const [first, ...rest] = site.name.split(' ')
 ---
 
 <PoolLayout status hint>
+  <div slot="scene" class="pool-scene"></div>
   <div class="abyss">
     <h1 class="name">
       <span>{first}</span>{' '}<span>{rest.join(' ')}</span>
@@ -27,6 +28,55 @@ const [first, ...rest] = site.name.split(' ')
     <Button href="/projects" size="pill" tone="outline" icon="arrow-right">Projects</Button>
   </div>
 </PoolLayout>
+
+<script>
+  // The water scene: loaded after first paint, and only where it can run well.
+  // Otherwise the still pool stays (no WebGL2, Save-Data, low-power devices).
+  const el = document.querySelector<HTMLElement>('.pool-scene')
+  const nav = navigator as Navigator & { connection?: { saveData?: boolean }; deviceMemory?: number }
+  const saveData = nav.connection?.saveData || matchMedia('(prefers-reduced-data: reduce)').matches
+  const lowPower = (nav.deviceMemory ?? 8) < 4 || (nav.hardwareConcurrency ?? 8) < 4
+  const canRun = () => {
+    const gl = document.createElement('canvas').getContext('webgl2')
+    const ok = Boolean(gl && (gl.getExtension('EXT_color_buffer_half_float') || gl.getExtension('EXT_color_buffer_float')))
+    gl?.getExtension('WEBGL_lose_context')?.loseContext()
+    return ok
+  }
+  if (el && !saveData && !lowPower && canRun()) {
+    await document.fonts.ready
+    const { mountScene } = await import('../scene')
+    // Reduced motion: the Still frame, rendered once.
+    mountScene(el, { motion: !matchMedia('(prefers-reduced-motion: reduce)').matches })
+  }
+</script>
+
+<style is:global>
+  .pool-scene {
+    position: absolute;
+    inset: 0;
+    grid-area: 1 / 1;
+    opacity: 0;
+    transition: opacity 600ms ease;
+  }
+
+  html[data-scene='ready'] .pool-scene {
+    opacity: 1;
+  }
+
+  /* Once the scene draws the name and title in the water, the DOM copy stays
+     for screen readers but stops painting. */
+  html[data-scene='ready'] .abyss .name,
+  html[data-scene='ready'] .abyss .role {
+    color: transparent;
+    text-shadow: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pool-scene {
+      transition: none;
+    }
+  }
+</style>
 
 <style>
   /* The name and title hang deep in the water, softly lit (Figma "Abyss"
