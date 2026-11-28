@@ -1,7 +1,7 @@
 // Renders the pool scene's stills for devices that can't run it (no WebGL,
-// Save-Data, low power): the water lit from the frame, with the chips at home
-// (homepage) or empty (404). The name and the pills aren't in the image; the
-// page draws those itself.
+// Save-Data, low power): the water lit by the lamp behind the camera, with
+// the chips at home (homepage) or empty (404). The name and the pills aren't
+// in the image; the page draws those itself.
 //
 // usage: pnpm build && pnpm preview, then node scripts/render-pool-still.mjs [baseUrl]
 import { chromium } from 'playwright'
@@ -16,6 +16,17 @@ const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--ena
 for (const variant of ['chips', 'empty']) {
   for (const s of sizes) {
     const page = await browser.newPage({ viewport: { width: s.width, height: s.height }, deviceScaleFactor: s.dpr })
+    // The mobile still covers every phone, and on narrow or short ones (320
+    // wide, where the pills wrap; 375×667) the name sits up to ~48 px higher
+    // in it than at 390×844. Reach the chips' keep-out up that far, with the
+    // text (and the light's pocket around it) left where it is.
+    if (s.name === 'mobile') {
+      await page.addInitScript(() =>
+        document.addEventListener('DOMContentLoaded', () => {
+          document.head.append(Object.assign(document.createElement('style'), { textContent: '.abyss { padding-top: 48px; margin-top: -48px }' }))
+        }),
+      )
+    }
     await page.goto(`${base}/?capture=${variant}`, { waitUntil: 'networkidle' })
     await page.waitForFunction(() => document.documentElement.dataset.scene === 'ready', null, { timeout: 120000 })
     await page.addStyleTag({ content: '.surface, .hud, .tub { visibility: hidden !important } .pool-scene { opacity: 1 !important; transition: none !important }' })
