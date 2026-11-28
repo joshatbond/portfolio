@@ -4,6 +4,7 @@
 
 export const surfaceFrag = /* glsl */ `
 uniform sampler2D tUnder;
+uniform sampler2D tChips;    // chips over transparent
 uniform sampler2D tSim;
 uniform float uSimScale;
 uniform vec2 uResolution;    // CSS px
@@ -23,6 +24,9 @@ void main() {
   float slope = length(n);
 
   vec3 col = texture2D(tUnder, vUv + n * uRefract).rgb;
+  // The chips, in the water, refracted like everything else below.
+  vec4 chip = texture2D(tChips, vUv + n * uRefract * 1.2);
+  col = mix(col, chip.rgb, chip.a);
 
   vec2 px = vUv * uResolution;  // y up
   float dEdge = min(min(px.x, uResolution.x - px.x), min(px.y, uResolution.y - px.y));

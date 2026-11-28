@@ -20,6 +20,7 @@ export function surfaceSystem(): System {
       const { min, max, ofShortSide } = config.surface.edgeFalloff
       material = pass(surfaceFrag, {
         tUnder: { value: null },
+        tChips: { value: null },
         tSim: { value: null },
         uSimScale: { value: 1 },
         uResolution: { value: new Vector2(W, H) },
@@ -31,6 +32,7 @@ export function surfaceSystem(): System {
     update(world) {
       if (!material) return
       material.uniforms.tUnder.value = world.light.target?.texture ?? null
+      material.uniforms.tChips.value = world.chips.target?.texture ?? null
       material.uniforms.tSim.value = world.water.height
       material.uniforms.uSimScale.value = world.water.simScale
       world.gpu.quad.render(world.gpu.renderer, material, null)

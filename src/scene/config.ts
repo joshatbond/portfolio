@@ -73,6 +73,55 @@ export const config = {
 
   /** The name and title in the deep: pool/paint seen through the water. */
   abyss: { dim: 0.56 },
+
+  chips: {
+    /**
+     * Still positions from the Figma Still frames: the chip's top-left in a
+     * 1440×900 (desktop) or 390×844 (mobile) frame. Positions scale with the
+     * window. Which chips appear comes from site.stackChips; phones show the
+     * ones in the mobile frame.
+     */
+    desktop: {
+      frame: [1440, 900],
+      at: {
+        typescript: [178, 178], javascript: [438, 108], react: [688, 218], vue: [968, 128], nuxt: [1203, 268],
+        nextjs: [268, 398], nodejs: [1118, 438], threejs: [513, 348], tailwindcss: [858, 358], vite: [173, 618],
+        bun: [1223, 658], rive: [368, 758], convex: [1000, 770], tanstack: [1310, 110],
+      },
+    },
+    mobile: {
+      frame: [390, 844],
+      at: {
+        typescript: [40, 128], javascript: [268, 100], react: [163, 230], vue: [44, 320], nuxt: [286, 314],
+        nodejs: [30, 746], tailwindcss: [298, 740], convex: [155, 112], tanstack: [165, 325],
+      },
+    },
+    /** Chip edge length (px); the artwork is 64. */
+    size: 64,
+    /** Still: floating just under the surface. */
+    surfaceDepth: 14,
+    bob: { amplitude: [2, 4], period: [4, 6], rock: 10 },
+    /** Still chips each send out a soft ripple this often (s). */
+    ripple: { every: [1.6, 2.6], radius: 0.022, strength: 0.0005 },
+    /** Pointer contact within this distance (px) makes a chip dive. */
+    disturbRadius: 350,
+    dive: { duration: [0.4, 0.7], bands: [160, 420], scatter: [220, 420], splash: 0.004 },
+    school: {
+      speed: [130, 95],
+      separation: 90,
+      alignment: 220,
+      cohesion: 260,
+      /** How far past the frame the school may roam, as a fraction of it. */
+      roam: 0.35,
+      /** Extra clearance around the name column and the pills (px). */
+      keepOut: 36,
+    },
+    /** With no input for this long (s), chips rise and bob again. */
+    idle: 6,
+    rise: { duration: [1.8, 2.6] },
+    /** Murky water: chips dim by e⁻¹ every this many px of depth. */
+    fogDepth: 360,
+  },
 } as const
 
 export type SceneConfig = typeof config

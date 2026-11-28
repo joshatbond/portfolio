@@ -34,6 +34,9 @@ export function inputSystem(): System {
     update(world) {
       const { input, drops, viewport } = world
       const long = Math.max(viewport.width, viewport.height)
+      // Where the pointer touched the water this frame, for the chips.
+      const touch = input.presses.at(-1) ?? input.moves.at(-1)
+      input.contact = touch ? { x: (touch.x - 0.5) * viewport.width, y: (touch.y - 0.5) * viewport.height } : null
       const { trail, press } = config.pointer
       for (const p of input.moves) {
         const last = input.last

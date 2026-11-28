@@ -1,0 +1,18 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+<foreignObject x="0" y="0" width="64" height="64" overflow="visible" data-figma-3d="true">
+<div xmlns="http://www.w3.org/1999/xhtml" style="position:relative;width:64px;height:64px">
+<div style="position:absolute;left:0;top:0;margin:0;width:64px;height:64px;transform-origin:0 0;transform:matrix(1, 0, 0, 1, 0, 0) translate(50%, 50%) translateZ(6px) translate(-50%, -50%)">
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" overflow="visible" style="position:absolute;left:0;top:0;overflow:visible">
+<g clip-path="url(#clip0_2013_1186)">
+<path d="M54.8628 62.2776L40.3577 39.1678H23.8858C23.8858 39.1678 20.5669 39.1678 20.5669 35.2342C20.5669 31.3006 23.8858 31.3006 23.8858 31.3006H40.3577C40.3577 31.3006 51.1751 31.5464 51.6668 20.2373C52.1585 8.92827 40.3577 7.69908 40.3577 7.69908H5.07836C5.07836 7.69908 1.88232 6.71563 1.88232 3.88842C1.88232 1.06121 5.07836 -0.045166 5.07836 -0.045166H39.989C39.989 -0.045166 46.8727 0.0777574 52.1585 3.88842C57.4443 7.69908 59.411 14.2142 59.534 14.9516C59.6569 15.6891 60.8861 23.9251 57.813 29.088C54.7399 34.2509 48.8395 37.201 48.8395 37.201L61.7466 57.8523C61.7466 57.8523 63.0988 60.6796 60.6403 63.1381C58.1818 65.5966 54.8628 62.2776 54.8628 62.2776Z" fill="#666666"/>
+</g>
+</svg>
+</div>
+</div>
+</foreignObject>
+<defs>
+<clipPath id="clip0_2013_1186">
+<rect width="64" height="64" fill="white"/>
+</clipPath>
+</defs>
+</svg>

@@ -1,0 +1,16 @@
+{
+  "typescript": "#153B68",
+  "javascript": "#887408",
+  "react": "#175363",
+  "vue": "#235C42",
+  "nuxt": "#006038",
+  "nextjs": "#202429",
+  "nodejs": "#2C5024",
+  "threejs": "#2C3136",
+  "tailwindcss": "#085065",
+  "vite": "#442E84",
+  "bun": "#7F6241",
+  "rive": "#2F3238",
+  "convex": "#4E1540",
+  "tanstack": "#605E54"
+}

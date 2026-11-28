@@ -1,0 +1,21 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+<foreignObject x="0" y="0" width="64" height="64" overflow="visible" data-figma-3d="true">
+<div xmlns="http://www.w3.org/1999/xhtml" style="position:relative;width:64px;height:64px">
+<div style="position:absolute;left:0;top:0;margin:0;width:64px;height:64px;transform-origin:0 0;transform:matrix(1, 0, 0, 1, 0, 0) translate(50%, 50%) translateZ(6px) translate(-50%, -50%)">
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" overflow="visible" style="position:absolute;left:0;top:0;overflow:visible">
+<g clip-path="url(#clip0_2013_918)">
+<path d="M32 38.0953C35.3663 38.0953 38.0952 35.3663 38.0952 32C38.0952 28.6337 35.3663 25.9048 32 25.9048C28.6337 25.9048 25.9048 28.6337 25.9048 32C25.9048 35.3663 28.6337 38.0953 32 38.0953Z" fill="#58C4DC"/>
+<path d="M62.4762 32.0002C62.4762 39.5744 48.8315 45.7145 32 45.7145C15.1685 45.7145 1.5238 39.5744 1.5238 32.0002C1.5238 24.426 15.1685 18.2859 32 18.2859C48.8315 18.2859 62.4762 24.426 62.4762 32.0002Z" stroke-width="1.88235" stroke="#58C4DC"/>
+<path d="M47.2381 58.3932C40.6787 62.1803 28.5388 53.4337 20.1231 38.8572C11.7073 24.2807 10.2025 9.39399 16.7619 5.6069C23.3213 1.8198 35.4612 10.5664 43.8769 25.1429C52.2927 39.7194 53.7975 54.6061 47.2381 58.3932Z" stroke-width="1.88235" stroke="#58C4DC"/>
+<path d="M16.7619 58.3933C10.2025 54.6062 11.7073 39.7195 20.1231 25.143C28.5389 10.5664 40.6787 1.81987 47.2381 5.60697C53.7975 9.39406 52.2927 24.2807 43.8769 38.8573C35.4612 53.4338 23.3214 62.1804 16.7619 58.3933Z" stroke-width="1.88235" stroke="#58C4DC"/>
+</g>
+</svg>
+</div>
+</div>
+</foreignObject>
+<defs>
+<clipPath id="clip0_2013_918">
+<rect width="64" height="64" fill="white"/>
+</clipPath>
+</defs>
+</svg>

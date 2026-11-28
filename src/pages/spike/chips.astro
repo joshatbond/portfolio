@@ -1,0 +1,25 @@
+---
+// SPIKE: every chip in a grid, to check the extruded geometry.
+---
+<html><body style="margin:0;background:#000204"><div id="c" style="position:fixed;inset:0"></div>
+<script>
+  import { Mesh, PerspectiveCamera, Scene, ShaderMaterial, Vector2, WebGLRenderer } from 'three'
+  import { chipGeometry, chipKeys } from '../../scene/chips/geometry'
+  import { chipFrag, chipVert } from '../../scene/shaders/chips'
+  const el = document.getElementById('c')!
+  const r = new WebGLRenderer({ antialias: true })
+  r.setSize(innerWidth, innerHeight)
+  el.append(r.domElement)
+  const cam = new PerspectiveCamera(40, innerWidth / innerHeight, 1, 5000)
+  cam.position.set(0, 0, 900)
+  const scene = new Scene()
+  const mat = new ShaderMaterial({ vertexShader: chipVert, fragmentShader: chipFrag, vertexColors: true, uniforms: { uHalf: { value: new Vector2(700, 450) }, uFogDepth: { value: 1e6 } } })
+  chipKeys.forEach((k, i) => {
+    const m = new Mesh(chipGeometry(k), mat)
+    m.scale.setScalar(2.4)
+    m.position.set(((i % 5) - 2) * 190, (1 - Math.floor(i / 5)) * 190, 0)
+    m.rotation.set(-0.35, 0.3, 0)
+    scene.add(m)
+  })
+  r.render(scene, cam)
+</script></body></html>

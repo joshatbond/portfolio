@@ -1,6 +1,7 @@
 import { createWorld, type World } from 'bitecs'
 import type { Texture, WebGLRenderer, WebGLRenderTarget } from 'three'
 import type { FullscreenQuad } from './gpu'
+import * as components from './chips/components'
 
 /** A disturbance for the water sim, in screen uv (0..1, y up). */
 export interface Drop {
@@ -21,7 +22,11 @@ export interface SceneContext {
     presses: { x: number; y: number }[]
     last: { x: number; y: number } | null
     lastAt: number
+    /** Where the pointer touched the water this frame (world px at the surface), if it did. */
+    contact: { x: number; y: number } | null
   }
+  /** Screen areas chips steer around (world px at the surface, y up): the name column and the pills. */
+  keepOut: { x0: number; y0: number; x1: number; y1: number }[]
   /** Drops queued for the water this frame. */
   drops: Drop[]
   gpu: { renderer: WebGLRenderer; quad: FullscreenQuad }
@@ -29,6 +34,10 @@ export interface SceneContext {
   water: { height: Texture | null; curvature: Texture | null; simScale: number }
   /** Published by the light system. */
   light: { target: WebGLRenderTarget | null }
+  /** Published by the chip renderer: chips over transparent, for the surface to composite. */
+  chips: { target: WebGLRenderTarget | null }
+  /** Chip components, registered with the world. */
+  components: typeof components
 }
 
 export type SceneWorld = World<SceneContext>
@@ -46,10 +55,13 @@ export function createSceneWorld(gpu: SceneContext['gpu']): SceneWorld {
     time: { delta: 0, elapsed: 0, then: performance.now() },
     viewport: { width: 1, height: 1, dpr: 1, mobile: false },
     view: { distance: 1240, nameDepth: 1100 },
-    input: { moves: [], presses: [], last: null, lastAt: 0 },
+    input: { moves: [], presses: [], last: null, lastAt: 0, contact: null },
+    keepOut: [],
     drops: [],
     gpu,
     water: { height: null, curvature: null, simScale: 1 },
     light: { target: null },
+    chips: { target: null },
+    components,
   })
 }

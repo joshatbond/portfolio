@@ -1,0 +1,12 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+<foreignObject x="0" y="0" width="64" height="64" overflow="visible" data-figma-3d="true">
+<div xmlns="http://www.w3.org/1999/xhtml" style="position:relative;width:64px;height:64px">
+<div style="position:absolute;left:0;top:0;margin:0;width:64px;height:64px;transform-origin:0 0;transform:matrix(1, 0, 0, 1, 0, 0) translate(50%, 50%) translateZ(6px) translate(-50%, -50%)">
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" overflow="visible" style="position:absolute;left:0;top:0;overflow:visible">
+<path d="M31.9827 22.6667L24.9787 10.6667H3.96533L31.9827 58.6667L60 10.6667H38.9867L31.9827 22.6667Z" fill="#81C784"/>
+<path d="M38.9867 10.6667L31.9827 22.6667L24.9787 10.6667H14.8613L31.9827 40.0001L49.104 10.6667H38.9867Z" fill="#455A64"/>
+</svg>
+</div>
+</div>
+</foreignObject>
+</svg>

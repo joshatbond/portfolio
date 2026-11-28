@@ -1,6 +1,8 @@
 import { WebGLRenderer } from 'three'
 import { config } from './config'
 import { FullscreenQuad } from './gpu'
+import { chipRenderSystem } from './systems/chipRender'
+import { chipsSystem } from './systems/chips'
 import { inputSystem } from './systems/input'
 import { lightSystem } from './systems/light'
 import { stirSystem } from './systems/stir'
@@ -23,7 +25,16 @@ export function mountScene(container: HTMLElement): () => void {
 
   const quad = new FullscreenQuad()
   const world = createSceneWorld({ renderer, quad })
-  const systems: System[] = [timeSystem(), inputSystem(), stirSystem(), wavesSystem(), lightSystem(), surfaceSystem()]
+  const systems: System[] = [
+    timeSystem(),
+    inputSystem(),
+    chipsSystem(),
+    stirSystem(),
+    wavesSystem(),
+    lightSystem(),
+    chipRenderSystem(),
+    surfaceSystem(),
+  ]
 
   const resize = () => {
     const width = container.clientWidth
