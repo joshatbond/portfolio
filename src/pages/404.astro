@@ -11,8 +11,8 @@ import bunChip from '../assets/pool/bun-chip.png'
 ---
 
 <PoolLayout title="Page not found" description="This page sank without a trace." index={false}>
-  <Image slot="still" src={bunChip} alt="" width={68} class="sinking-chip" loading="eager" />
   <div class="abyss">
+    <Image src={bunChip} alt="" width={68} class="sinking-chip" loading="eager" />
     <h1 class="code">404 <span class="visually-hidden">Page not found</span></h1>
     <p class="sub">
       <span class="wide-only">Nothing down here but the deep end</span>
@@ -44,9 +44,9 @@ import bunChip from '../assets/pool/bun-chip.png'
     font-size: 100px;
     line-height: 92px;
     letter-spacing: -0.035em;
-    text-shadow:
-      0 0 23px rgb(6 182 212 / 0.55),
-      0 0 5px rgb(34 211 238 / 0.25);
+    /* A wide, faint halo: anything brighter crowds the letters below the
+       contrast floor. */
+    text-shadow: 0 0 36px rgb(6 182 212 / 0.16);
   }
 
   .sub {
@@ -72,16 +72,22 @@ import bunChip from '../assets/pool/bun-chip.png'
     margin-top: 22px;
   }
 
-  /* Mid-water (-420): small, dimmed by depth, drifting down off-centre. */
+  /* Mid-water: small, dimmed by depth, drifting down above the heading
+     (anchored to it, so it never sits behind the glyphs). */
+  .abyss {
+    position: relative;
+  }
+
   :global(.sinking-chip) {
     position: absolute;
-    top: 41%;
-    left: 64%;
+    bottom: calc(100% + 30px);
+    left: 62%;
     width: 46px;
     height: auto;
     opacity: 0.85;
     filter: brightness(0.8) saturate(0.85);
     transform: rotate(-14deg);
+    pointer-events: none;
   }
 
   @media (min-width: 720px) {
@@ -110,10 +116,5 @@ import bunChip from '../assets/pool/bun-chip.png'
       margin-top: 28px;
     }
 
-    :global(.sinking-chip) {
-      top: 37%;
-      left: 60%;
-      width: 46px;
-    }
   }
 </style>

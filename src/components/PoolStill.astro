@@ -8,11 +8,6 @@
  * to the same look. (The scene's own pre-rendered still replaces it where
  * WebGL can't run.)
  */
-interface Props {
-  class?: string
-}
-
-const { class: className } = Astro.props
 
 // Motes drifting in the mid-water: a fixed scatter.
 let seed = 20261127
@@ -26,13 +21,14 @@ const motes = Array.from({ length: 36 }, () => {
 }).join(',')
 ---
 
-<div class:list={['tub', className]} style={`--motes: ${motes}`} aria-hidden="true">
+<div class="tub" style={`--motes: ${motes}`} aria-hidden="true">
   <div class="light"></div>
   <div class="shafts"></div>
   <div class="motes"></div>
   <slot />
   <div class="vignette"></div>
   <div class="rim"></div>
+  <div class="rim-top"></div>
 </div>
 
 <style>
@@ -85,6 +81,14 @@ const motes = Array.from({ length: 36 }, () => {
       inset 0 0 6px rgb(34 211 238 / 0.95),
       inset 0 0 22px rgb(6 182 212 / 0.6),
       0 0 6px rgb(34 211 238 / 0.95);
+  }
+
+  /* Only the frame's top edge is shared with the inner pages' nav rim, so it
+     holds still between them while the rest of the frame fades. */
+  .rim-top {
+    inset: 0 0 auto;
+    height: 2px;
+    background: rgb(165 243 252 / 0.95);
     view-transition-name: rim;
   }
 </style>

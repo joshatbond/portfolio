@@ -39,8 +39,8 @@ const { status = false, hint = false, ...meta } = Astro.props
         hint && (
           <p class="hint">
             <Icon name="waves" size={16} />
-            <span class="wide-only">Move to stir the water</span>
-            <span class="narrow-only">Tap the water</span>
+            <span class="hint-fine">Move to stir the water</span>
+            <span class="hint-touch">Tap the water</span>
           </p>
         )
       }
@@ -57,10 +57,6 @@ const { status = false, hint = false, ...meta } = Astro.props
 </BaseLayout>
 
 <style>
-  :global(body.pool-page) {
-    overflow: hidden;
-  }
-
   .pool {
     position: relative;
     isolation: isolate;
@@ -131,6 +127,21 @@ const { status = false, hint = false, ...meta } = Astro.props
     font: 400 12px/16px var(--font-mono);
     white-space: nowrap;
     transform: translateX(-50%);
+  }
+
+  /* The hint's wording follows the input, not the screen size. */
+  .hint-touch {
+    display: none;
+  }
+
+  @media (hover: none), (pointer: coarse) {
+    .hint-fine {
+      display: none;
+    }
+
+    .hint-touch {
+      display: inline;
+    }
   }
 
   @media (min-width: 720px) {

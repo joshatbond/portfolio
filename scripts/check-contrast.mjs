@@ -108,9 +108,10 @@ for (const width of WIDTHS) {
 
     // ----- 1. Link and button labels, per state -----
     // Glyphs are hidden with a fill-colour override, so inline styles,
-    // currentColor icons and borders stay exactly as rendered.
+    // currentColor icons, borders and text glows stay exactly as rendered:
+    // a glow behind the letters is part of what they're read against.
     await page.addStyleTag({
-      content: '[data-cc-hide], [data-cc-hide] * { -webkit-text-fill-color: transparent !important; text-shadow: none !important; }',
+      content: '[data-cc-hide], [data-cc-hide] * { -webkit-text-fill-color: transparent !important; }',
     })
     const labelCount = await page.evaluate(() => {
       window.__labels = [...document.querySelectorAll('a, button')].filter((el) => el.innerText.trim())
@@ -203,7 +204,7 @@ for (const width of WIDTHS) {
       return window.__texts.map((node) => ({ color: getComputedStyle(node.parentElement).color, text: node.textContent.trim().slice(0, 40) }))
     })
     const hide = await page.addStyleTag({
-      content: '*, *::before, *::after { -webkit-text-fill-color: transparent !important; text-shadow: none !important; }',
+      content: '*, *::before, *::after { -webkit-text-fill-color: transparent !important; }',
     })
     const docHeight = await page.evaluate(() => document.documentElement.scrollHeight)
     const done = new Set()
