@@ -387,11 +387,28 @@ function scatter(world: SceneWorld, shoal: Shoal, press: { x: number; y: number 
     const d = far(Position.x[eid], Position.y[eid], Position.z[eid])
     if (d < reach) fright.set(eid, 1 - d / reach)
   }
+  // Where each school is to be seen, its fish still swimming in included.
   const broken = new Set<number>()
-  for (const [id, mid] of shoal.middle) if (far(mid.x, mid.y, mid.z) < reach) broken.add(id)
+  const seen = new Map<number, { x: number; y: number }>()
+  for (const [id, members] of shoal.schools) {
+    const mid = {
+      x: members.reduce((t, m) => t + Position.x[m], 0) / members.length,
+      y: members.reduce((t, m) => t + Position.y[m], 0) / members.length,
+      z: members.reduce((t, m) => t + Position.z[m], 0) / members.length,
+    }
+    seen.set(id, mid)
+    if (far(mid.x, mid.y, mid.z) < reach) broken.add(id)
+  }
+  const startled = new Set<number>()
   for (const id of broken) {
     const members = shoal.schools.get(id) ?? []
-    const mid = shoal.middle.get(id)
+    const mid = seen.get(id)
+    // Any of its fish yet to set off will swim in on their own.
+    for (const eid of query(world, [Chip, Fish])) {
+      if (Fish.school[eid] !== id || members.includes(eid)) continue
+      Fish.school[eid] = 0
+      Fish.lonely[eid] = -rand(S.school.regroup)
+    }
     for (const m of members) {
       const a = away(m)
       const al = Math.hypot(a.x, a.y) || 1
@@ -404,11 +421,12 @@ function scatter(world: SceneWorld, shoal: Shoal, press: { x: number; y: number 
       startle(world, m, heading, Math.max(fright.get(m) ?? 0, 0.35), s)
       Fish.school[m] = 0
       Fish.lonely[m] = -rand(S.school.regroup)
+      startled.add(m)
     }
   }
   for (const [eid, f] of fright) {
     // Fish in a school that carries on stay with it; those just broken away have darted already.
-    if (Fish.school[eid] || Fish.kick[eid] > S.kick.length) continue
+    if (Fish.school[eid] || startled.has(eid)) continue
     const a = away(eid)
     startle(world, eid, Math.atan2(a.y, a.x) + (random() - 0.5) * 0.8, f, s)
     Fish.lonely[eid] = -rand(S.school.regroup)
@@ -448,15 +466,27 @@ function regroup(world: SceneWorld, shoal: Shoal, dt: number, s: number) {
       School.depth[school] = clamp((Fish.depth[eid] + Fish.depth[mate]) / 2, S.depth.band[0], S.depth.band[1])
       School.redepth[school] = rand(S.depth.every)
       School.beat[school] = -rand([0.2, 0.8])
+      // Heading, for now, for where it is; somewhere new on its first beat.
+      const k = depthScale(world, -Position.z[eid])
+      School.goalU[school] = Position.x[eid] / k / world.viewport.width
+      School.goalV[school] = Position.y[eid] / k / world.viewport.height
       School.regoal[school] = 0
       shoal.schools.set(school, [])
     }
+    const members = shoal.schools.get(school)!
     for (const f of mate ? [eid, mate] : [eid]) {
       Fish.school[f] = school
       Fish.depth[f] = clamp(School.depth[school] + (random() - 0.5) * 50, S.depth.band[0], S.depth.band[1])
       if (Fish.kick[f] <= 0) Fish.kick[f] = WAIT
-      shoal.schools.get(school)!.push(f)
+      members.push(f)
     }
+    // The school's middle moves with its new fish, for whoever looks to join next.
+    const here = swimming(members)
+    shoal.middle.set(school, {
+      x: here.reduce((t, m) => t + Position.x[m], 0) / here.length,
+      y: here.reduce((t, m) => t + Position.y[m], 0) / here.length,
+      z: here.reduce((t, m) => t + Position.z[m], 0) / here.length,
+    })
   }
 }
 
@@ -805,6 +835,7 @@ export function chipsSystem(): System {
       // different set (phone ↔ wider) swims in afresh.
       const keys: string[] = keysFor(world)
       const { width: W, height: H } = world.viewport
+      if (!W || !H) return
       if (keys.join() !== shown) {
         shown = keys.join()
         size = { width: W, height: H }

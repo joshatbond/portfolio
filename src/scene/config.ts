@@ -191,9 +191,10 @@ export const config = {
      * Swimming, like fish: in small schools, burst and glide. Each fish has
      * its own pace (px/s). A kick of about `kick.length` s takes it up to
      * `kick.boost`× its pace (each kick up to `kick.vary` stronger or
-     * weaker); then it glides for `kick.glide` s, a new length each time,
-     * coasting down toward `kick.drift`× its pace (losing e⁻¹ of the
-     * difference every `kick.coast` s) before it kicks again.
+     * weaker); then it glides, coasting down toward `kick.drift`× its pace
+     * (losing e⁻¹ of the difference every `kick.coast` s), until it kicks
+     * again. A school's kicks come every `kick.glide` s, a new interval each
+     * time; a fish on its own glides that long between its own.
      *
      * It turns on its kicks: quickly (`agility.kick` per s) toward where it
      * wants to go, swerving up to `swerve` rad off that (much less when it
