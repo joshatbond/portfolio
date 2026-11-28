@@ -1,8 +1,8 @@
 ---
 /**
- * Inner-page navigation (Figma "Nav / Desktop" 2035:575, "Nav / Mobile" 2035:598).
- * The 2px neon rim on top holds still between inner pages
- * (view-transition-name: rim).
+ * Inner-page navigation (Figma "Nav / Desktop" 2035:575, "Nav / Mobile" 2035:598),
+ * without the neon rim the design drew along its top (the user asked for it
+ * to go, with the homepage's frame).
  */
 import { site } from '../config/site'
 import Icon from './Icon.astro'
@@ -20,7 +20,6 @@ const projectsCurrent = current === 'projects' ? (isIndex ? 'page' : 'true') : u
 ---
 
 <header class="site-nav">
-  <div class="rim" aria-hidden="true" data-vt-visible></div>
   <nav class="bar" aria-label="Main">
     <a class="home" href="/">
       <span class="mark" aria-hidden="true"><Icon name="waves" size={18} /></span>
@@ -40,13 +39,6 @@ const projectsCurrent = current === 'projects' ? (isIndex ? 'page' : 'true') : u
   .site-nav {
     position: relative;
     z-index: 10;
-  }
-
-  .rim {
-    height: 2px;
-    background: var(--accent-hover);
-    box-shadow: var(--rim-glow);
-    view-transition-name: rim;
   }
 
   .bar {

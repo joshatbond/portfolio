@@ -96,8 +96,9 @@ export const config = {
   },
 
   /**
-   * Marine snow: specks drifting and slowly sinking through the deep, lit by
-   * the lamps they pass through and all but invisible outside them.
+   * Marine snow: specks carried by the deep's currents (src/scene/flow.ts),
+   * lit by the lamps they pass through and all but invisible outside them.
+   * The view drifts slowly forward through them.
    */
   specks: {
     /** Specks per million CSS px of window. */
@@ -107,9 +108,22 @@ export const config = {
     depth: [30, 950] as [number, number],
     /** Diameter (CSS px) just under the surface. */
     size: 3.5,
-    /** Drift (px/s) across, and sinking. */
-    drift: [3, 10] as [number, number],
-    sink: 7,
+    /**
+     * The currents: eddies `wavelength` px across, moving the water at about
+     * `speed` px/s, each pattern giving way to the next over `turnover` s;
+     * `lift` is the share that churns up and down.
+     */
+    current: { wavelength: [280, 720] as [number, number], speed: 14, turnover: 26, lift: 0.35 },
+    /** Moving slowly forward: everything drifts toward the window (px/s). */
+    approach: 16,
+    /** How quickly a speck takes up the water's motion (per s): its inertia. */
+    drag: 1.2,
+    /**
+     * Stirring: the pointer sweeps specks along within `radius` px (seen at
+     * the surface), shallow ones most (falling off over `depth` px); a press
+     * pushes them out at up to `burst` px/s.
+     */
+    stir: { radius: 170, depth: 320, sweep: 0.6, burst: 180 },
     /** Brightness in the dark, and in a lamp's full light. */
     dark: 0.06,
     lit: 5,

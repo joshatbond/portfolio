@@ -41,7 +41,19 @@ export function inputSystem(): System {
       const long = Math.max(viewport.width, viewport.height)
       // Where the pointer touched the water this frame, for the chips.
       const touch = input.presses.at(-1) ?? input.moves.at(-1)
-      input.contact = touch ? { x: (touch.x - 0.5) * viewport.width, y: (touch.y - 0.5) * viewport.height } : null
+      const toWorld = (p: { x: number; y: number }) => ({ x: (p.x - 0.5) * viewport.width, y: (p.y - 0.5) * viewport.height })
+      input.contact = touch ? toWorld(touch) : null
+      // The stroke this frame, for what the water carries along (the specks).
+      const end = input.moves.at(-1)
+      const start = input.last ?? input.moves[0]
+      if (end && start) {
+        const a = toWorld(start)
+        const b = toWorld(end)
+        const dt = Math.max(world.time.delta, 1 / 120)
+        input.stroke = { x: b.x, y: b.y, vx: (b.x - a.x) / dt, vy: (b.y - a.y) / dt }
+      } else input.stroke = null
+      const pressed = input.presses.at(-1)
+      input.press = pressed ? toWorld(pressed) : null
       const { trail, press } = config.pointer
       for (const p of input.moves) {
         const last = input.last

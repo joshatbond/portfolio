@@ -24,6 +24,10 @@ export interface SceneContext {
     lastAt: number
     /** Where the pointer touched the water this frame (world px at the surface), if it did. */
     contact: { x: number; y: number } | null
+    /** The pointer's stroke across the water this frame: where it ended and how fast it went (world px, px/s). */
+    stroke: { x: number; y: number; vx: number; vy: number } | null
+    /** A press into the water this frame (world px at the surface). */
+    press: { x: number; y: number } | null
   }
   /** Screen areas chips steer around (world px at the surface, y up): the name column and the pills. */
   keepOut: { x0: number; y0: number; x1: number; y1: number }[]
@@ -85,7 +89,7 @@ export function createSceneWorld(
     time: { delta: 0, elapsed: 0, then: performance.now() },
     viewport: { width: 1, height: 1, dpr: 1, mobile: false },
     view: { distance: 1240, nameDepth: 1100 },
-    input: { moves: [], presses: [], last: null, lastAt: 0, contact: null },
+    input: { moves: [], presses: [], last: null, lastAt: 0, contact: null, stroke: null, press: null },
     keepOut: [],
     drops: [],
     gpu,

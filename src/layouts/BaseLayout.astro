@@ -72,7 +72,7 @@ const ogImageUrl = new URL(ogImage, site.url).href
     <Font cssVariable="--font-mono" preload />
     <slot name="head" />
     <script is:inline>
-      // Shared elements (the nav rim, the Dice Augur title) morph between
+      // Shared elements (like the Dice Augur title) morph between
       // pages. One that's out of view on either side would fly in from off
       // screen, so for that transition it just fades with the page instead.
       // Checked on both sides, and reset each time (pages restored from the
