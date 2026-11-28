@@ -1,0 +1,13 @@
+<svg width="65" height="64" viewBox="0 0 65 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+<foreignObject x="0" y="0" width="65" height="64" overflow="visible" data-figma-3d="true">
+<div xmlns="http://www.w3.org/1999/xhtml" style="position:relative;width:65px;height:64px">
+<div style="position:absolute;left:0;top:0;margin:0;width:64px;height:64px;transform-origin:0 0;transform:matrix(1, 0, 0, 1, 0.2302, 0) translate(50%, 50%) translateZ(6px) translate(-50%, -50%)">
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" overflow="visible" style="position:absolute;left:0;top:0;overflow:visible">
+<path d="M39.5142 48.7135C47.997 47.7774 55.9941 43.2859 60.3968 35.7894C58.3122 54.331 37.9083 66.0507 21.2537 58.8551C19.7191 58.1939 18.3981 57.094 17.4915 55.6798C13.7488 49.8397 12.5185 42.4087 14.2862 35.665C19.337 44.3269 29.607 49.6367 39.5142 48.7135Z" fill="#F3B01C"/>
+<path d="M13.9766 30.2244C10.5381 38.1203 10.3892 47.3648 14.6047 54.9726C-0.230285 43.8817 -0.0684855 20.1482 14.4235 9.16865C15.7638 8.15388 17.3567 7.55155 19.0274 7.45983C25.8978 7.09975 32.8783 9.73829 37.7736 14.6552C27.8274 14.7534 18.1403 21.0845 13.9766 30.2244Z" fill="#8D2676"/>
+<path d="M42.5704 17.0848C37.5519 10.1317 29.6973 5.39806 21.0916 5.2541C37.7268 -2.24896 58.189 9.91562 60.4162 27.9007C60.6234 29.5702 60.3518 31.2725 59.6071 32.7783C56.4989 39.0505 50.7358 43.9151 44.0014 45.7155C48.9357 36.6215 48.3269 25.5109 42.5704 17.0848Z" fill="#EE342F"/>
+</svg>
+</div>
+</div>
+</foreignObject>
+</svg>

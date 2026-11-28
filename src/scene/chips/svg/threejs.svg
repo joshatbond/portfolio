@@ -1,0 +1,16 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+<foreignObject x="0" y="0" width="64" height="64" overflow="visible" data-figma-3d="true">
+<div xmlns="http://www.w3.org/1999/xhtml" style="position:relative;width:64px;height:64px">
+<div style="position:absolute;left:0;top:0;margin:0;width:64px;height:64px;transform-origin:0 0;transform:matrix(1, 0, 0, 1, 0, 0) translate(50%, 50%) translateZ(6px) translate(-50%, -50%)">
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" overflow="visible" style="position:absolute;left:0;top:0;overflow:visible">
+<path d="M20.3156 57.8171L8.11987 8.44482L57.0096 22.5205L20.3156 57.8171Z" stroke-width="1.88235" stroke-miterlimit="10" stroke-linejoin="round" stroke="white"/>
+<path d="M32.5557 15.4841L38.6492 40.1776L14.2179 33.1375L32.5557 15.4841Z" stroke-width="1.88235" stroke-miterlimit="10" stroke-linejoin="round" stroke="white"/>
+<path d="M26.4935 36.4866L23.4669 24.2197L35.6048 27.7041L26.4935 36.4866Z" stroke-width="1.88235" stroke-miterlimit="10" stroke-linejoin="round" stroke="white"/>
+<path d="M20.4393 11.9678L23.4658 24.2347L11.3279 20.7503L20.4393 11.9678Z" stroke-width="1.88235" stroke-miterlimit="10" stroke-linejoin="round" stroke="white"/>
+<path d="M44.7139 18.9604L47.7405 31.2273L35.6026 27.743L44.7139 18.9604Z" stroke-width="1.88235" stroke-miterlimit="10" stroke-linejoin="round" stroke="white"/>
+<path d="M26.4949 36.4951L29.5215 48.762L17.3836 45.2777L26.4949 36.4951Z" stroke-width="1.88235" stroke-miterlimit="10" stroke-linejoin="round" stroke="white"/>
+</svg>
+</div>
+</div>
+</foreignObject>
+</svg>

@@ -1,13 +1,29 @@
 ---
 /**
- * The pool as a static still, in CSS. The viewport is a window frame with LED
- * strips in it, over dark, murky water that carries on past every edge: the
- * LEDs' light falls into the water as soft shafts and fades into the deep.
+ * The pool as a static still, in CSS. The viewport is a window looking out
+ * into the inky deep: a lamp behind the camera throws a soft glow into the
+ * water, and specks drift through it.
  *
- * It's the first paint, and what the WebGL scene fades in over, so it keeps
- * to the same look. (The scene's own pre-rendered still replaces it where
- * WebGL can't run.)
+ * It's the first paint, and what the WebGL scene fades in over. On top of the
+ * CSS light sits a pre-rendered still of the scene itself
+ * (scripts/render-pool-still.mjs), which is all that shows where the scene
+ * can't run: no WebGL, Save-Data, low-power devices.
  */
+import { getImage } from 'astro:assets'
+import desktopChips from '../assets/pool/still-desktop.webp'
+import mobileChips from '../assets/pool/still-mobile.webp'
+import desktopEmpty from '../assets/pool/still-empty-desktop.webp'
+import mobileEmpty from '../assets/pool/still-empty-mobile.webp'
+
+interface Props {
+  /** The stack chips at the surface (homepage) or empty water (404). */
+  variant?: 'chips' | 'empty'
+}
+
+const { variant = 'chips' } = Astro.props
+const [desktop, mobile] = await Promise.all(
+  (variant === 'chips' ? [desktopChips, mobileChips] : [desktopEmpty, mobileEmpty]).map((src) => getImage({ src, format: 'webp' })),
+)
 
 // Motes drifting in the mid-water: a fixed scatter.
 let seed = 20261127
@@ -23,12 +39,13 @@ const motes = Array.from({ length: 36 }, () => {
 
 <div class="tub" style={`--motes: ${motes}`} aria-hidden="true">
   <div class="light"></div>
-  <div class="shafts"></div>
+  <picture class="render">
+    <source media="(max-width: 719.98px)" srcset={mobile.src} />
+    <img src={desktop.src} alt="" decoding="async" />
+  </picture>
   <div class="motes"></div>
   <slot />
   <div class="vignette"></div>
-  <div class="rim"></div>
-  <div class="rim-top" data-vt-visible></div>
 </div>
 
 <style>
@@ -45,25 +62,17 @@ const motes = Array.from({ length: 36 }, () => {
     pointer-events: none;
   }
 
-  /* The LEDs' light in the murky water, strongest at the frame and swallowed
-     within a fraction of the window. */
+  /* The lamp's light in the inky water: one soft glow, a quarter of the way
+     up from the bottom, where the scene's lamp sits behind the camera
+     (src/scene/config.ts). */
   .light {
-    box-shadow:
-      inset 0 0 2vmin rgb(34 211 238 / 0.35),
-      inset 0 0 12vmin rgb(8 145 178 / 0.6),
-      inset 0 0 28vmin rgb(6 182 212 / 0.4),
-      inset 0 0 48vmin rgb(8 145 178 / 0.2);
+    background: radial-gradient(60vmax 48vmax at 50% 75%, rgb(6 182 212 / 0.22), rgb(6 182 212 / 0.06) 50%, transparent);
   }
 
-  /* Shafts where the moving surface bent the light, fanning in from the
-     frame; two spacings so they don't read as a regular burst. */
-  .shafts {
-    background:
-      repeating-conic-gradient(from 3deg at 50% 50%, rgb(34 211 238 / 0.06) 0deg 0.7deg, transparent 0.7deg 2.9deg),
-      repeating-conic-gradient(from 1deg at 50% 50%, rgb(34 211 238 / 0.05) 0deg 1.3deg, transparent 1.3deg 5.3deg);
-    -webkit-mask-image: radial-gradient(closest-side, transparent 62%, rgb(0 0 0 / 0.8) 100%, #000 125%);
-    mask-image: radial-gradient(closest-side, transparent 62%, rgb(0 0 0 / 0.8) 100%, #000 125%);
-    filter: blur(0.6px);
+  .render img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   .motes {
@@ -72,23 +81,5 @@ const motes = Array.from({ length: 36 }, () => {
 
   .vignette {
     background: radial-gradient(farthest-corner, rgb(0 0 0 / 0) 55%, rgb(0 0 0 / 0.35));
-  }
-
-  /* The LED strips in the window frame. */
-  .rim {
-    border: 2px solid rgb(165 243 252 / 0.95);
-    box-shadow:
-      inset 0 0 6px rgb(34 211 238 / 0.95),
-      inset 0 0 22px rgb(6 182 212 / 0.6),
-      0 0 6px rgb(34 211 238 / 0.95);
-  }
-
-  /* Only the frame's top edge is shared with the inner pages' nav rim, so it
-     holds still between them while the rest of the frame fades. */
-  .rim-top {
-    inset: 0 0 auto;
-    height: 2px;
-    background: rgb(165 243 252 / 0.95);
-    view-transition-name: rim;
   }
 </style>

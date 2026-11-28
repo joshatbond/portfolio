@@ -9,7 +9,10 @@
 //    doesn't fail a paragraph. All text is hidden and the page is captured in
 //    overlapping viewport-sized windows, without changing the layout.
 //
-// Pages are checked at the design widths and either side of each breakpoint.
+// Pages are checked at the design widths and either side of each breakpoint,
+// in reduced motion. The homepage is checked twice: with the water scene
+// (whose own name and title check-scene-text.mjs measures) and with its
+// fallback still, as devices that can't run the scene see it.
 //
 // usage: node scripts/check-contrast.mjs [baseUrl] [path ...]
 //   default: http://localhost:4321 and every page in dist/ (build first)
@@ -49,7 +52,9 @@ function builtPaths() {
     }
   }
   if (existsSync('dist')) walk('dist')
-  return pages.sort()
+  pages.sort()
+  if (pages.includes('/')) pages.splice(pages.indexOf('/') + 1, 0, '/?scene=off')
+  return pages
 }
 const paths = argPaths.length ? argPaths : builtPaths()
 if (paths.length === 0) {
@@ -199,6 +204,8 @@ for (const width of WIDTHS) {
         if (!el || !node.textContent.trim() || el.closest('a, button, script, style, .visually-hidden')) continue
         const style = getComputedStyle(el)
         if (style.visibility === 'hidden' || Number(style.opacity) === 0) continue
+        // Not painted (e.g. the homepage name once the water scene draws it).
+        if (/^rgba\(.*,\s*0\)$|transparent/.test(style.color)) continue
         window.__texts.push(node)
       }
       return window.__texts.map((node) => ({ color: getComputedStyle(node.parentElement).color, text: node.textContent.trim().slice(0, 40) }))

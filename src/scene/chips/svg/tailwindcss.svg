@@ -1,0 +1,23 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+<foreignObject x="0" y="0" width="64" height="64" overflow="visible" data-figma-3d="true">
+<div xmlns="http://www.w3.org/1999/xhtml" style="position:relative;width:64px;height:64px">
+<div style="position:absolute;left:0;top:0;margin:0;width:64px;height:64px;transform-origin:0 0;transform:matrix(1, 0, 0, 1, 0, 0) translate(50%, 50%) translateZ(6px) translate(-50%, -50%)">
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" overflow="visible" style="position:absolute;left:0;top:0;overflow:visible">
+<g clip-path="url(#clip0_2013_1073)">
+<mask id="mask0_2013_1073" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="12" width="64" height="39">
+<path d="M0 12.4443H64V50.8443H0V12.4443Z" fill="white"/>
+</mask>
+<g mask="url(#mask0_2013_1073)">
+<path d="M32 12.4443C23.4667 12.4443 18.1333 16.711 16 25.2443C19.2 20.9777 22.9333 19.3777 27.2 20.4443C29.6344 21.0523 31.3742 22.8194 33.3001 24.7738C36.4373 27.9584 40.0687 31.6443 48 31.6443C56.5333 31.6443 61.8667 27.3777 64 18.8443C60.8 23.111 57.0667 24.711 52.8 23.6443C50.3656 23.0363 48.6258 21.2692 46.6999 19.3149C43.5627 16.1303 39.9313 12.4443 32 12.4443ZM16 31.6443C7.46667 31.6443 2.13333 35.911 0 44.4443C3.2 40.1777 6.93333 38.5777 11.2 39.6443C13.6344 40.2535 15.3742 42.0195 17.3001 43.9738C20.4373 47.1584 24.0687 50.8443 32 50.8443C40.5333 50.8443 45.8667 46.5777 48 38.0443C44.8 42.311 41.0667 43.911 36.8 42.8443C34.3656 42.2363 32.6258 40.4692 30.6999 38.5149C27.5627 35.3303 23.9313 31.6443 16 31.6443Z" fill-rule="evenodd" clip-rule="evenodd" fill="#38BDF8"/>
+</g>
+</g>
+</svg>
+</div>
+</div>
+</foreignObject>
+<defs>
+<clipPath id="clip0_2013_1073">
+<rect width="64" height="39.1111" fill="white" transform="translate(0 12.4443)"/>
+</clipPath>
+</defs>
+</svg>
