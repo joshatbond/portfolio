@@ -466,12 +466,8 @@ function regroup(world: SceneWorld, shoal: Shoal, dt: number, s: number) {
       School.depth[school] = clamp((Fish.depth[eid] + Fish.depth[mate]) / 2, S.depth.band[0], S.depth.band[1])
       School.redepth[school] = rand(S.depth.every)
       School.beat[school] = -rand([0.2, 0.8])
-      // Heading, for now, for where it is; somewhere new on its first beat.
-      const k = depthScale(world, -Position.z[eid])
-      School.goalU[school] = Position.x[eid] / k / world.viewport.width
-      School.goalV[school] = Position.y[eid] / k / world.viewport.height
-      School.regoal[school] = 0
       shoal.schools.set(school, [])
+      newGoal(world, shoal, school)
     }
     const members = shoal.schools.get(school)!
     for (const f of mate ? [eid, mate] : [eid]) {
@@ -850,7 +846,7 @@ export function chipsSystem(): System {
     },
     update(world) {
       const dt = world.time.delta
-      if (world.frozen || dt === 0) return
+      if (world.frozen || dt === 0 || !world.viewport.width || !world.viewport.height) return
       bubbles(world, dt)
       const s = swimScale(world)
       // The fish that have set off.
