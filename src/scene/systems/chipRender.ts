@@ -29,7 +29,7 @@ export function chipRenderSystem(): System {
     vertexShader: chipVert,
     fragmentShader: chipFrag,
     vertexColors: true,
-    uniforms: { uFogDepth: { value: config.chips.fogDepth } },
+    uniforms: { uFogDepth: { value: config.chips.fogDepth }, uClear: { value: config.chips.clearDepth } },
   })
 
   // Bubbles: one Points object, refilled from the bubble entities each frame.

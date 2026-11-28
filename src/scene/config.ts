@@ -159,10 +159,10 @@ export const config = {
 
   chips: {
     /**
-     * Still positions from the Figma Still frames: the chip's top-left in a
-     * 1440×900 (desktop) or 390×844 (mobile) frame. Positions scale with the
-     * window. Which chips appear comes from site.stackChips; phones show the
-     * ones in the mobile frame.
+     * Where they float with reduced motion (the Figma Still frames): the
+     * chip's top-left in a 1440×900 (desktop) or 390×844 (mobile) frame,
+     * scaled with the window. Which chips appear comes from site.stackChips;
+     * phones show the ones in the mobile frame.
      */
     desktop: {
       frame: [1440, 900],
@@ -181,36 +181,100 @@ export const config = {
     },
     /** Chip edge length (px); the artwork is 64. */
     size: 64,
-    /** Still: floating just under the surface. */
+    /**
+     * Reduced motion: they float still just under the surface, at the
+     * positions above, rocked (degrees) and lifted a little each.
+     */
     surfaceDepth: 14,
-    bob: { amplitude: [2, 4], period: [4, 6], rock: 10 },
-    /** Still chips each send out a soft ripple this often (s). */
-    ripple: { every: [1.6, 2.6], radius: 0.022, strength: 0.0005 },
-    /** Pointer contact within this distance (px) makes a chip dive. */
-    disturbRadius: 350,
-    dive: { duration: [0.4, 0.7], bands: [160, 420], scatter: [220, 420], splash: 0.0028 },
+    bob: { amplitude: [2, 4], rock: 10 },
+    /**
+     * Swimming, like fish. Each cruises at its own speed (px/s), now and then
+     * putting on a burst (every `burst.every` s, `boost`× for `length` s),
+     * turning toward where it wants to go at `agility` per s while its heading
+     * wanders (`wander` rad/s), and making for a depth (px) it changes every
+     * `redepth` s. Near neighbours keep `separation` px apart, match heading
+     * within `alignment` px and drift together within `cohesion` px. Each
+     * keeps to the water around its spot in the still, turning back once it's
+     * strayed about `range` (share of the window's width) from it, and none
+     * roams more than `roam` (share of the window) past its edges.
+     */
+    swim: {
+      cruise: [55, 95] as [number, number],
+      /** In a burst it also swerves `swerve` rad off its line. */
+      burst: { every: [4, 10] as [number, number], boost: 1.9, length: 0.7, swerve: [0.4, 1.1] as [number, number] },
+      agility: 1.4,
+      wander: 0.8,
+      depth: [40, 440] as [number, number],
+      redepth: [6, 12] as [number, number],
+      separation: 120,
+      alignment: 280,
+      cohesion: 340,
+      range: 0.22,
+      roam: 0.3,
+      /** How far the face turns toward where it's going, and banks per rad/s of turn (rad). */
+      lean: 0.25,
+      bank: 0.35,
+      /**
+       * The tail: how far it wags (rad), beats per px swum (at most `maxBeat`
+       * a second), and sways the body side to side (px).
+       */
+      wag: { angle: 0.14, perPx: 0.03, maxBeat: 4.5, sway: 2.5 },
+      /** Fish this near the surface ripple it as they pass. */
+      wake: { depth: 60, every: 0.3, radius: 0.012, strength: 0.00035 },
+    },
+    /**
+     * Swimming in when the scene starts, over `stagger` s: `behind` of them
+     * from behind the camera (past the window's top and bottom, just under
+     * the surface, swimming away into the water), `deep` rising out of the
+     * dark in front of it, and the rest from the left and right, deeper.
+     */
+    arrive: {
+      stagger: 3.5,
+      behind: 2,
+      deep: 2,
+      /**
+       * They swim in this many times faster than they cruise, from behind
+       * faster still, closing on the depth they make for at `climb` (per s:
+       * from the sides, from behind and from the deep), at most `max` px/s.
+       */
+      boost: 2,
+      behindBoost: 2.6,
+      climb: { side: 0.5, behind: 0.7, deep: 0.9, max: 700 },
+      /** Where they start (px below the surface): from behind just under it, from the deep out of sight. */
+      behindFrom: 18,
+      deepFrom: 1800,
+      /**
+       * The depths (px) they make for, and how much deeper than that the ones
+       * from the sides come in.
+       */
+      depth: {
+        deep: [160, 260] as [number, number],
+        behind: [240, 380] as [number, number],
+        side: [140, 380] as [number, number],
+        sideDrop: [60, 160] as [number, number],
+      },
+    },
+    /**
+     * A press startles fish within `radius` px of it (seen at the surface):
+     * they dart away at `speed` px/s and dive `dive` px, for about `time` s,
+     * the shallow ones loosing a few bubbles.
+     */
+    scatter: { radius: 360, speed: [480, 680] as [number, number], dive: 180, time: 1.1 },
     bubbles: {
-      perDive: 10,
-      life: [0.6, 1.2],
-      rise: [120, 240],
+      /** Up to this many from a startled fish, fewer the deeper it is, none below `from` px. */
+      perDart: 6,
+      from: 220,
+      life: [0.6, 1.2] as [number, number],
+      rise: [120, 240] as [number, number],
       /** Diameter just under the surface (CSS px); deeper bubbles look smaller. */
       size: 5,
     },
-    school: {
-      speed: [130, 95],
-      separation: 90,
-      alignment: 220,
-      cohesion: 260,
-      /** How far past the frame the school may roam, as a fraction of it. */
-      roam: 0.35,
-      /** Extra clearance around the name column and the pills (px). */
-      keepOut: 36,
-    },
-    /** With no input for this long (s), chips rise and bob again. */
-    idle: 6,
-    rise: { duration: [1.8, 2.6] },
-    /** Murky water: chips dim by e⁻¹ every this many px of depth. */
+    /**
+     * Murky water: chips dim by e⁻¹ every `fogDepth` px of depth and, below
+     * the first `clearDepth` px, fade into the water's own light as fast.
+     */
     fogDepth: 360,
+    clearDepth: 60,
   },
 } as const
 
