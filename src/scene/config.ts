@@ -41,7 +41,11 @@ export const config = {
 
   pointer: {
     trail: { radius: 0.014, maxStrength: 0.0016, spacing: 0.012 },
-    press: { radius: 0.028, strength: 0.009 },
+    /**
+     * A press or tap: one drop, a little wider than the trail's, whose ring
+     * catches the lamp about as a stroke's wake does. A press, not a bright ring.
+     */
+    press: { radius: 0.02, strength: 0.004 },
   },
 
   /**
